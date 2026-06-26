@@ -1,11 +1,10 @@
 from fastapi import APIRouter
 
-from app.models.scale import ScaleStatus
-from app.services.scale_service import get_weight
+from app.services.scale_service import scale_service
 
-router = APIRouter(tags=["weight"])
+router = APIRouter()
 
 
-@router.get("/weight", response_model=ScaleStatus)
-def weight():
-    return get_weight()
+@router.get("/weight")
+def get_weight():
+    return scale_service.get_weight()

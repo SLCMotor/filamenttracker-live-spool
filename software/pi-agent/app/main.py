@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.calibration import router as calibration_router
 from app.api.mock import router as mock_router
 from app.api.nfc import router as nfc_router
 from app.api.status import router as status_router
@@ -27,4 +28,5 @@ def root():
 app.include_router(status_router)
 app.include_router(weight_router)
 app.include_router(nfc_router)
+app.include_router(calibration_router)
 app.include_router(mock_router)
