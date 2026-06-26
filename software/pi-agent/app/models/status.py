@@ -1,16 +1,7 @@
 from pydantic import BaseModel
 
-
-class ScaleStatus(BaseModel):
-    connected: bool
-    stable: bool
-    weightGrams: float | None
-
-
-class NfcStatus(BaseModel):
-    connected: bool
-    tagPresent: bool
-    tagId: str | None
+from app.models.nfc import NfcStatus
+from app.models.scale import ScaleStatus
 
 
 class StatusResponse(BaseModel):
@@ -19,7 +10,3 @@ class StatusResponse(BaseModel):
     version: str
     scale: ScaleStatus
     nfc: NfcStatus
-
-
-class MockNfcTagRequest(BaseModel):
-    tagId: str

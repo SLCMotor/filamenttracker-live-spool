@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 
 from app.core.device_manager import devices
-from app.models.status import MockNfcTagRequest, StatusResponse
+from app.models.nfc import MockNfcTagRequest
+from app.models.status import StatusResponse
 from app.services.status_service import get_status
 
 router = APIRouter(prefix="/mock", tags=["mock"])

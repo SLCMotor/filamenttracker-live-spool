@@ -1,6 +1,8 @@
 from app.core.config import config
 from app.core.device_manager import devices
-from app.models.status import NfcStatus, ScaleStatus, StatusResponse
+from app.models.nfc import NfcStatus
+from app.models.scale import ScaleStatus
+from app.models.status import StatusResponse
 
 
 def get_status() -> StatusResponse:
