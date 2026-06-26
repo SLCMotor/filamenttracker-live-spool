@@ -2,10 +2,12 @@ from app.devices.nfc import NFCDevice, NFCReading
 
 
 class MockNFCDevice(NFCDevice):
+    """Mock NFC reader used for development without real hardware."""
+
     def __init__(self) -> None:
         self.connected = True
         self.tag_present = False
-        self.tag_id = None
+        self.tag_id: str | None = None
 
     def read(self) -> NFCReading:
         return NFCReading(
