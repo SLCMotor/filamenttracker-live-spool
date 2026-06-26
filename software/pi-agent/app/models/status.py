@@ -19,3 +19,7 @@ class StatusResponse(BaseModel):
     version: str
     scale: ScaleStatus
     nfc: NfcStatus
+
+
+class MockNfcTagRequest(BaseModel):
+    tagId: str

@@ -2,7 +2,12 @@ from fastapi import FastAPI
 
 from app.core.config import config
 from app.core.device_manager import devices
-from app.models.status import NfcStatus, ScaleStatus, StatusResponse
+from app.models.status import (
+    MockNfcTagRequest,
+    NfcStatus,
+    ScaleStatus,
+    StatusResponse,
+)
 
 app = FastAPI(
     title=config.app_name,
@@ -42,3 +47,15 @@ def status():
             tagId=nfc_reading.tag_id,
         ),
     )
+
+
+@app.post("/mock/nfc/present", response_model=StatusResponse)
+def mock_nfc_present(request: MockNfcTagRequest):
+    devices.nfc.present_tag(request.tagId)
+    return status()
+
+
+@app.post("/mock/nfc/remove", response_model=StatusResponse)
+def mock_nfc_remove():
+    devices.nfc.remove_tag()
+    return status()
