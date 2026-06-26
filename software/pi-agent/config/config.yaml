@@ -11,11 +11,14 @@ device:
   name: "Live Spool"
   location: "Workshop"
 
+hardware:
+  device_mode: "mock"
+
 scale:
-  enabled: false
+  enabled: true
   mock: true
   unit: "grams"
 
 nfc:
-  enabled: false
+  enabled: true
   mock: true

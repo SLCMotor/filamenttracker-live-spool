@@ -1,7 +1,7 @@
 from pathlib import Path
+
 import yaml
 
-# software/pi-agent/config/config.yaml
 CONFIG_PATH = (
     Path(__file__).resolve().parent.parent.parent
     / "config"
@@ -37,6 +37,22 @@ class Config:
     @property
     def device_name(self):
         return self.data["device"]["name"]
+
+    @property
+    def device_location(self):
+        return self.data["device"].get("location", "")
+
+    @property
+    def device_mode(self):
+        return self.data.get("hardware", {}).get("device_mode", "mock")
+
+    @property
+    def scale_enabled(self):
+        return bool(self.data.get("scale", {}).get("enabled", True))
+
+    @property
+    def nfc_enabled(self):
+        return bool(self.data.get("nfc", {}).get("enabled", True))
 
 
 config = Config()
