@@ -1,39 +1,40 @@
 from fastapi import FastAPI
 
-APP_NAME = "FilamentTracker Live Spool"
-APP_VERSION = "0.1.0"
+from app.core.config import config
+from app.models.status import NfcStatus, ScaleStatus, StatusResponse
 
 app = FastAPI(
-    title=APP_NAME,
-    version=APP_VERSION,
-    description="Local Raspberry Pi API for FilamentTracker Live Spool hardware."
+    title=config.app_name,
+    version=config.version,
+    description="Local Raspberry Pi API for FilamentTracker Live Spool hardware.",
 )
 
 
 @app.get("/")
 def root():
     return {
-        "name": APP_NAME,
-        "version": APP_VERSION,
+        "name": config.app_name,
+        "version": config.version,
+        "environment": config.environment,
         "status": "online",
-        "message": "Live Spool API is running"
+        "message": "Live Spool API is running",
     }
 
 
-@app.get("/status")
+@app.get("/status", response_model=StatusResponse)
 def status():
-    return {
-        "status": "online",
-        "deviceName": "Live Spool",
-        "version": APP_VERSION,
-        "scale": {
-            "connected": False,
-            "stable": False,
-            "weightGrams": None
-        },
-        "nfc": {
-            "connected": False,
-            "tagPresent": False,
-            "tagId": None
-        }
-    }
+    return StatusResponse(
+        status="online",
+        deviceName=config.device_name,
+        version=config.version,
+        scale=ScaleStatus(
+            connected=False,
+            stable=False,
+            weightGrams=None,
+        ),
+        nfc=NfcStatus(
+            connected=False,
+            tagPresent=False,
+            tagId=None,
+        ),
+    )

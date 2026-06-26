@@ -1,0 +1,21 @@
+app:
+  name: "FilamentTracker Live Spool"
+  version: "0.1.0"
+  environment: "development"
+
+server:
+  host: "127.0.0.1"
+  port: 8001
+
+device:
+  name: "Live Spool"
+  location: "Workshop"
+
+scale:
+  enabled: false
+  mock: true
+  unit: "grams"
+
+nfc:
+  enabled: false
+  mock: true
