@@ -25,6 +25,7 @@ def root():
 @app.get("/status", response_model=StatusResponse)
 def status():
     weight = devices.scale.get_weight_grams()
+    nfc_reading = devices.nfc.read()
 
     return StatusResponse(
         status="online",
@@ -36,8 +37,8 @@ def status():
             weightGrams=weight,
         ),
         nfc=NfcStatus(
-            connected=False,
-            tagPresent=False,
-            tagId=None,
+            connected=nfc_reading.connected,
+            tagPresent=nfc_reading.tag_present,
+            tagId=nfc_reading.tag_id,
         ),
     )
