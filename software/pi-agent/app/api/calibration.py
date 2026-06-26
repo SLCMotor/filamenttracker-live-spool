@@ -43,6 +43,17 @@ def known_weight(request: KnownWeightRequest):
         raise HTTPException(status_code=400, detail=str(error))
 
 
+@router.post("/reset")
+def reset():
+    calibration_service.reset()
+
+    return {
+        "success": True,
+        "message": "Calibration reset",
+        "calibration": calibration_service.status(),
+    }
+
+
 @router.get("/status")
 def status():
     return calibration_service.status()
