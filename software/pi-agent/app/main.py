@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.api.mock import router as mock_router
 from app.api.status import router as status_router
+from app.api.weight import router as weight_router
 from app.core.config import config
 
 app = FastAPI(
@@ -23,4 +24,5 @@ def root():
 
 
 app.include_router(status_router)
+app.include_router(weight_router)
 app.include_router(mock_router)
