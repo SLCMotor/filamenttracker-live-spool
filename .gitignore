@@ -1,15 +1,16 @@
-# Python virtual environment
-.venv/
-
-# Python cache
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
 
-# VS Code
-.vscode/
+# Runtime data
+software/pi-agent/data/calibration.json
 
-# JetBrains
-.idea/
-
-# macOS
+# OS / editor
 .DS_Store
+.vscode/
+.idea/
