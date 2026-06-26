@@ -1,13 +1,8 @@
 from fastapi import FastAPI
 
+from app.api.mock import router as mock_router
+from app.api.status import router as status_router
 from app.core.config import config
-from app.core.device_manager import devices
-from app.models.status import (
-    MockNfcTagRequest,
-    NfcStatus,
-    ScaleStatus,
-    StatusResponse,
-)
 
 app = FastAPI(
     title=config.app_name,
@@ -27,35 +22,5 @@ def root():
     }
 
 
-@app.get("/status", response_model=StatusResponse)
-def status():
-    weight = devices.scale.get_weight_grams()
-    nfc_reading = devices.nfc.read()
-
-    return StatusResponse(
-        status="online",
-        deviceName=config.device_name,
-        version=config.version,
-        scale=ScaleStatus(
-            connected=devices.scale.is_connected(),
-            stable=True,
-            weightGrams=weight,
-        ),
-        nfc=NfcStatus(
-            connected=nfc_reading.connected,
-            tagPresent=nfc_reading.tag_present,
-            tagId=nfc_reading.tag_id,
-        ),
-    )
-
-
-@app.post("/mock/nfc/present", response_model=StatusResponse)
-def mock_nfc_present(request: MockNfcTagRequest):
-    devices.nfc.present_tag(request.tagId)
-    return status()
-
-
-@app.post("/mock/nfc/remove", response_model=StatusResponse)
-def mock_nfc_remove():
-    devices.nfc.remove_tag()
-    return status()
+app.include_router(status_router)
+app.include_router(mock_router)
