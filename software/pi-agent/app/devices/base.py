@@ -9,11 +9,15 @@ class ScaleDevice(ABC):
         pass
 
     @abstractmethod
-    def get_weight_grams(self) -> float | None:
+    def is_stable(self) -> bool:
         pass
 
     @abstractmethod
-    def tare(self) -> bool:
+    def get_raw_weight_grams(self) -> float:
+        pass
+
+    @abstractmethod
+    def set_mock_raw_weight_grams(self, weight_grams: float) -> None:
         pass
 
 

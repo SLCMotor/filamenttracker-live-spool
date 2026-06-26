@@ -1,5 +1,3 @@
-import random
-
 from app.devices.base import ScaleDevice
 
 
@@ -8,16 +6,17 @@ class MockScale(ScaleDevice):
 
     def __init__(self):
         self._connected = True
-        self._weight = 850.0
+        self._stable = True
+        self._raw_weight_grams = 850.47
 
     def is_connected(self) -> bool:
         return self._connected
 
-    def get_weight_grams(self) -> float:
-        # Simulate slight fluctuations in weight
-        self._weight += random.uniform(-0.5, 0.5)
-        return round(self._weight, 2)
+    def is_stable(self) -> bool:
+        return self._stable
 
-    def tare(self) -> bool:
-        self._weight = 0.0
-        return True
+    def get_raw_weight_grams(self) -> float:
+        return self._raw_weight_grams
+
+    def set_mock_raw_weight_grams(self, weight_grams: float) -> None:
+        self._raw_weight_grams = weight_grams
