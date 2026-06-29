@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ app_name }} Diagnostics</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <div class="screen">
+    <header class="header">
+      <div>
+        <div class="brand-main">Diagnostics</div>
+        <div class="brand-sub">Filament Tracker · Live Spool</div>
+      </div>
+
+      <div class="header-right">
+        <div class="device-name">{{ device_name }} · v{{ version }}</div>
+        <div class="pill" id="lastUpdated">Starting...</div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card spool-card">
+        <div class="section-kicker">System</div>
+        <div class="detail-grid">
+          <div class="detail-tile">
+            <div class="detail-icon">●</div>
+            <div class="detail-copy">
+              <div class="label">API</div>
+              <div class="value good" id="apiStatus">ONLINE</div>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-icon">↻</div>
+            <div class="detail-copy">
+              <div class="label">Monitor</div>
+              <div class="value" id="monitorStatus">--</div>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-icon">◉</div>
+            <div class="detail-copy">
+              <div class="label">Scale</div>
+              <div class="value" id="scaleFooter">--</div>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-icon">◆</div>
+            <div class="detail-copy">
+              <div class="label">NFC</div>
+              <div class="value" id="nfcFooter">--</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card spool-card">
+        <div class="section-kicker">Live Data</div>
+
+        <div class="detail-grid">
+          <div class="detail-tile">
+            <div class="detail-icon">⚖</div>
+            <div class="detail-copy">
+              <div class="label">Weight</div>
+              <div class="value"><span id="weight">--</span> g</div>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-icon">◇</div>
+            <div class="detail-copy">
+              <div class="label">Tag ID</div>
+              <div class="value mono" id="tagId">--</div>
+            </div>
+          </div>
+
+          <div class="detail-tile detail-wide">
+            <div class="detail-icon">▱</div>
+            <div class="detail-copy">
+              <div class="label">Current Spool</div>
+              <div class="value" id="spoolName">No spool loaded</div>
+            </div>
+          </div>
+
+          <div class="detail-tile detail-wide">
+            <div class="detail-icon">!</div>
+            <div class="detail-copy">
+              <div class="label">Error</div>
+              <div class="value" id="error">None</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-card">
+        <div class="footer-icon">←</div>
+        <div>
+          <div class="footer-label">Back</div>
+          <div class="footer-value">Dashboard</div>
+        </div>
+      </div>
+
+      <div class="footer-card">
+        <div class="footer-icon">/</div>
+        <div>
+          <div class="footer-label">Route</div>
+          <div class="footer-value">/diagnostics</div>
+        </div>
+      </div>
+
+      <div class="footer-card">
+        <div class="footer-icon">1s</div>
+        <div>
+          <div class="footer-label">Refresh</div>
+          <div class="footer-value">LIVE</div>
+        </div>
+      </div>
+
+      <div class="footer-card">
+        <div class="footer-icon">✓</div>
+        <div>
+          <div class="footer-label">Mode</div>
+          <div class="footer-value good">READ ONLY</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/js/status-panel.js"></script>
+  <script src="/static/js/diagnostics.js"></script>
+</body>
+</html>

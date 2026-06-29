@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.calibration import router as calibration_router
 from app.api.dashboard import router as dashboard_router
+from app.api.diagnostics import router as diagnostics_router
 from app.api.mock import router as mock_router
 from app.api.nfc import router as nfc_router
 from app.api.spool import router as spool_router
@@ -48,6 +49,7 @@ def root():
 
 
 app.include_router(dashboard_router)
+app.include_router(diagnostics_router)
 app.include_router(status_router)
 app.include_router(weight_router)
 app.include_router(nfc_router)
