@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+export DISPLAY="${DISPLAY:-:0}"
+
 DASHBOARD_URL="http://localhost:8001/dashboard"
 
 # Wait for the Live Spool API/dashboard to be ready before opening Chromium.
@@ -16,6 +18,11 @@ done
 xset s off || true
 xset -dpms || true
 xset s noblank || true
+
+# Hide cursor after idle if unclutter is installed.
+if command -v unclutter >/dev/null 2>&1; then
+  unclutter -idle 2 -root &
+fi
 
 # Launch Chromium in kiosk mode.
 exec /usr/bin/chromium \
