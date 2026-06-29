@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ app_name }}</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <div class="screen">
+    <header class="header">
+      <div>
+        <div class="title">FILAMENTTRACKER LIVE SPOOL</div>
+        <div class="subtitle">{{ device_name }} · v{{ version }}</div>
+      </div>
+      <div class="pill" id="lastUpdated">Starting...</div>
+    </header>
+
+    <main class="main">
+      <section class="card weight-card">
+        <div class="weight-label">Current Weight</div>
+        <div class="weight">
+          <span id="weight">--</span><span class="grams">g</span>
+        </div>
+
+        <div class="status-row">
+          <div class="status" id="scaleStatus">Scale: --</div>
+          <div class="status" id="stableStatus">Stable: --</div>
+          <div class="status" id="monitorStatus">Monitor: --</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Current Spool</div>
+
+        <div class="spool-top">
+          <div>
+            <div class="spool-name" id="spoolName">No spool loaded</div>
+            <div class="spool-subtitle" id="spoolSubtitle">Waiting for NFC tag...</div>
+          </div>
+          <div class="color-swatch" id="colorSwatch" title="Filament color"></div>
+        </div>
+
+        <div class="spool-detail">
+          <div class="label">Material</div>
+          <div class="value" id="material">--</div>
+        </div>
+
+        <div class="spool-detail">
+          <div class="label">Brand</div>
+          <div class="value" id="brand">--</div>
+        </div>
+
+        <div class="spool-detail">
+          <div class="label">Color</div>
+          <div class="value" id="color">--</div>
+        </div>
+
+        <div class="spool-detail">
+          <div class="label">Tag ID</div>
+          <div class="value" id="tagId">--</div>
+        </div>
+
+        <div class="spool-detail">
+          <div class="label">Changed</div>
+          <div class="value" id="changed">--</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-card">
+        <div class="footer-label">API</div>
+        <div class="footer-value good">ONLINE</div>
+      </div>
+
+      <div class="footer-card">
+        <div class="footer-label">NFC</div>
+        <div class="footer-value" id="nfcFooter">--</div>
+      </div>
+
+      <div class="footer-card">
+        <div class="footer-label">Scale</div>
+        <div class="footer-value" id="scaleFooter">--</div>
+      </div>
+
+      <div class="footer-card">
+        <div class="footer-label">Loaded</div>
+        <div class="footer-value" id="loadedFooter">--</div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
