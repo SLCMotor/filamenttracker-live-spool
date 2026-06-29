@@ -1,11 +1,10 @@
 from fastapi import APIRouter
 
-from app.models.nfc import NfcStatus
 from app.services.nfc_service import get_nfc
 
-router = APIRouter(tags=["nfc"])
+router = APIRouter()
 
 
-@router.get("/nfc", response_model=NfcStatus)
-def nfc():
+@router.get("/nfc")
+def read_nfc() -> dict:
     return get_nfc()
