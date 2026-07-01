@@ -5,7 +5,7 @@
     { label: "Dashboard", href: "/dashboard" },
     { label: "Calibration", href: "/calibration-wizard" },
     { label: "Diagnostics", href: "/diagnostics" },
-    { label: "Settings", href: "#", disabled: true },
+    { label: "Settings", href: "/settings" },
     { label: "About", href: "#", disabled: true },
   ];
 

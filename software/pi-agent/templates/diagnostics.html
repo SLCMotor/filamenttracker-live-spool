@@ -82,40 +82,12 @@
   </section>
 {% endblock %}
 
-{% block footer %}
-  <footer class="footer">
-    <div class="footer-card">
-      <div class="footer-icon">←</div>
-      <div>
-        <div class="footer-label">Back</div>
-        <div class="footer-value">Dashboard</div>
-      </div>
-    </div>
-
-    <div class="footer-card">
-      <div class="footer-icon">/</div>
-      <div>
-        <div class="footer-label">Route</div>
-        <div class="footer-value">/diagnostics</div>
-      </div>
-    </div>
-
-    <div class="footer-card">
-      <div class="footer-icon">1s</div>
-      <div>
-        <div class="footer-label">Refresh</div>
-        <div class="footer-value">LIVE</div>
-      </div>
-    </div>
-
-    <div class="footer-card">
-      <div class="footer-icon">✓</div>
-      <div>
-        <div class="footer-label">Mode</div>
-        <div class="footer-value good">READ ONLY</div>
-      </div>
-    </div>
-  </footer>
+{% block tech_nav %}
+  <nav class="tech-nav">
+    <a class="nav-button" href="/dashboard">← Dashboard</a>
+    <a class="nav-button" href="/settings">Settings</a>
+    <a class="nav-button" href="/calibration-wizard">Calibration</a>
+  </nav>
 {% endblock %}
 
 {% block page_scripts %}

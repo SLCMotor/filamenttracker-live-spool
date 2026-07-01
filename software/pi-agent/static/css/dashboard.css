@@ -1044,3 +1044,166 @@ body:has(.calibration-shell) .footer-grid {
 .tech-menu-item.disabled strong {
   color: rgba(246, 251, 255, 0.55);
 }
+
+/* Settings */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.settings-tile {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 28px;
+  padding: 24px;
+  text-decoration: none;
+  color: #f6fbff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.settings-tile h3 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.settings-tile p {
+  margin: 10px 0 0;
+  color: rgba(246, 251, 255, 0.68);
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.settings-tile strong {
+  color: #40d39c;
+  font-size: 15px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.settings-tile,
+.settings-tile:visited,
+.settings-tile:hover,
+.settings-tile:active,
+.settings-tile:focus {
+  color: #f6fbff;
+  text-decoration: none;
+}
+
+.settings-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(64, 211, 156, 0.45);
+  background: rgba(64, 211, 156, 0.10);
+}
+
+.settings-screen .main {
+  padding-top: 18px;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-grid-six {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.settings-grid-six .settings-tile {
+  min-height: 150px;
+  padding: 22px;
+}
+
+.settings-grid-six .settings-tile h3 {
+  font-size: 30px;
+}
+
+.settings-grid-six .settings-tile p {
+  font-size: 17px;
+}
+
+.settings-actions-fixed {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 4px;
+}
+
+.settings-actions-fixed .nav-button {
+  min-height: 64px;
+  justify-content: center;
+}
+
+.settings-screen .header {
+  margin-bottom: 10px;
+}
+
+.settings-screen .main {
+  padding-top: 8px;
+}
+
+.settings-screen .settings-panel {
+  gap: 10px;
+}
+
+.settings-screen .settings-grid-six {
+  gap: 10px;
+}
+
+.settings-screen .settings-grid-six .settings-tile {
+  min-height: 118px;
+  padding: 16px;
+}
+
+.settings-screen .settings-grid-six .settings-tile h3 {
+  font-size: 24px;
+}
+
+.settings-screen .settings-grid-six .settings-tile p {
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.settings-screen .settings-grid-six .settings-tile strong {
+  font-size: 13px;
+}
+
+.settings-screen .settings-actions-fixed .nav-button {
+  min-height: 52px;
+}
+
+.settings-screen .settings-actions-fixed .nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.tech-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.tech-nav .nav-button {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

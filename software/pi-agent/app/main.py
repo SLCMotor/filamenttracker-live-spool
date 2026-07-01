@@ -10,6 +10,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.diagnostics import router as diagnostics_router
 from app.api.mock import router as mock_router
 from app.api.nfc import router as nfc_router
+from app.api.settings_ui import router as settings_ui_router
 from app.api.spool import router as spool_router
 from app.api.status import router as status_router
 from app.api.weight import router as weight_router
@@ -46,11 +47,13 @@ def root():
         "status": "online",
         "message": "Live Spool API is running",
         "dashboard": "/dashboard",
+        "settings": "/settings",
     }
 
 
 app.include_router(dashboard_router)
 app.include_router(diagnostics_router)
+app.include_router(settings_ui_router)
 app.include_router(status_router)
 app.include_router(weight_router)
 app.include_router(nfc_router)

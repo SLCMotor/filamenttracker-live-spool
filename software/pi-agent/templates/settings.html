@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Settings{% endblock %}
+
+
+{% block tech_nav %}
+  <nav class="tech-nav">
+    <a class="nav-button" href="/dashboard">← Dashboard</a>
+    <a class="nav-button" href="/diagnostics">Diagnostics</a>
+    <a class="nav-button" href="/calibration-wizard">Calibration</a>
+  </nav>
+{% endblock %}
+
+
+{% block screen_class %}settings-screen{% endblock %}
+{% block header_title %}Settings{% endblock %}
+{% block header_subtitle %}System Configuration{% endblock %}
+
+{% block content %}
+<div class="settings-panel">
+
+  <div class="settings-grid settings-grid-six">
+
+    <a class="settings-tile" href="/settings/general">
+      <h3>General</h3>
+      <p>Device name, app version, and system options.</p>
+      <strong>Open</strong>
+    </a>
+
+    <a class="settings-tile" href="/settings/scale">
+      <h3>Scale</h3>
+      <p>Calibration, tare, known weight, and verification.</p>
+      <strong>Open</strong>
+    </a>
+
+    <a class="settings-tile" href="/settings/nfc">
+      <h3>NFC</h3>
+      <p>Reader status, tag tools, and assignment options.</p>
+      <strong>Open</strong>
+    </a>
+
+    <a class="settings-tile" href="/settings/display">
+      <h3>Display</h3>
+      <p>Kiosk display, touchscreen layout, and brightness notes.</p>
+      <strong>Open</strong>
+    </a>
+
+    <a class="settings-tile" href="/settings/network">
+      <h3>Network</h3>
+      <p>Local API address and dashboard connection details.</p>
+      <strong>Open</strong>
+    </a>
+
+    <a class="settings-tile" href="/settings/about">
+      <h3>About</h3>
+      <p>Live Spool build information and project details.</p>
+      <strong>Open</strong>
+    </a>
+
+  </div>
+
+
+</div>
+{% endblock %}

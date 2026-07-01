@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} {{ section.title }} Settings{% endblock %}
+
+{% block screen_class %}settings-screen{% endblock %}
+{% block header_title %}{{ section.title }}{% endblock %}
+{% block header_subtitle %}{{ section.subtitle }}{% endblock %}
+
+{% block content %}
+<div class="settings-panel">
+
+  <section class="card spool-card">
+    <div class="section-kicker">Settings</div>
+
+    <div class="detail-grid">
+      {% for row in section["items"] %}
+      <div class="detail-tile">
+        <div class="detail-icon">•</div>
+        <div class="detail-copy">
+          <div class="label">{{ row[0] }}</div>
+          <div class="value">{{ row[1] }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block tech_nav %}
+  <nav class="tech-nav">
+    <a class="nav-button" href="/settings">← Settings</a>
+    <a class="nav-button" href="/dashboard">Dashboard</a>
+    {% if section_key == "scale" %}
+      <a class="nav-button" href="/calibration-wizard">Calibration</a>
+    {% else %}
+      <a class="nav-button" href="/diagnostics">Diagnostics</a>
+    {% endif %}
+  </nav>
+{% endblock %}
