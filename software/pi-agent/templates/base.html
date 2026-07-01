@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <div class="screen {% block screen_class %}{% endblock %}">
+    <header class="header">
+      <div data-tech-menu-trigger>
+        <div class="brand-main">{% block header_title %}Filament Tracker{% endblock %}</div>
+        <div class="brand-sub">{% block header_subtitle %}Live Spool{% endblock %}</div>
+      </div>
+
+      <div class="header-right">
+        <div class="device-name">{{ device_name }} · v{{ version }}</div>
+        <div class="pill" id="lastUpdated">Starting...</div>
+      </div>
+    </header>
+
+    <main class="{% block main_class %}main{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}{% endblock %}
+  </div>
+
+  {% block page_scripts %}{% endblock %}
+  <script src="/static/js/technician-menu.js"></script>
+</body>
+</html>

@@ -87,7 +87,8 @@ class CalibrationService:
 
     def tare(self, current_raw_weight: float):
         self.zero_offset = current_raw_weight
-        self.calibrated = True
+        self.scale_factor = 1.0
+        self.calibrated = False
         self.save()
 
     def calibrate(self, raw_weight: float, known_weight: float):

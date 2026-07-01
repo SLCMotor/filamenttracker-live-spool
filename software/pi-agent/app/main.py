@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.api.calibration import router as calibration_router
+from app.api.calibration_ui import router as calibration_ui_router
 from app.api.dashboard import router as dashboard_router
 from app.api.diagnostics import router as diagnostics_router
 from app.api.mock import router as mock_router
@@ -55,4 +56,5 @@ app.include_router(weight_router)
 app.include_router(nfc_router)
 app.include_router(spool_router)
 app.include_router(calibration_router)
+app.include_router(calibration_ui_router)
 app.include_router(mock_router)

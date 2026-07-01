@@ -6,17 +6,17 @@ from fastapi.templating import Jinja2Templates
 
 from app.core.config import config
 
-router = APIRouter(tags=["diagnostics"])
+router = APIRouter(tags=["calibration-ui"])
 
 APP_ROOT = Path(__file__).resolve().parents[2]
 templates = Jinja2Templates(directory=str(APP_ROOT / "templates"))
 
 
-@router.get("/diagnostics", response_class=HTMLResponse)
-def diagnostics(request: Request):
+@router.get("/calibration-wizard", response_class=HTMLResponse)
+def calibration_wizard(request: Request):
     return templates.TemplateResponse(
         request,
-        "diagnostics.html",
+        "calibration.html",
         {
             "app_name": config.app_name,
             "device_name": config.device_name,

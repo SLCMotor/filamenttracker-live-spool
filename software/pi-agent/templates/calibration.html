@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ app_name }} Calibration</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <main class="app-shell calibration-shell">
+    <header class="top-bar">
+      <div>
+        <div class="eyebrow">Technician Wizard</div>
+        <h1>Scale Calibration</h1>
+      </div>
+      <a class="nav-button" href="/diagnostics">Diagnostics</a>
+    </header>
+
+    <section class="hero-card calibration-card">
+      <div class="wizard-progress">
+        <div id="stepPill" class="status-pill">Step 1 of 7</div>
+        <div id="statusPill" class="status-pill muted">Ready</div>
+      </div>
+
+      <div class="progress-track">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <div class="wizard-stage">
+        <div id="stepIcon" class="wizard-icon">⚖</div>
+        <div>
+          <h2 id="stepTitle">Welcome</h2>
+          <p id="stepText">This wizard will calibrate the Live Spool scale.</p>
+        </div>
+      </div>
+
+      <div class="weight-readout">
+        <div>
+          <div class="metric-label">Live Weight</div>
+          <div id="liveWeight" class="metric-value">-- g</div>
+        </div>
+        <div>
+          <div class="metric-label">Scale</div>
+          <div id="scaleState" class="metric-value small">Checking</div>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button id="backButton" class="touch-button secondary" type="button">Back</button>
+        <button id="nextButton" class="touch-button primary" type="button">Start</button>
+      </div>
+
+      <div id="knownWeightPanel" class="known-weight-panel hidden">
+        <div class="preset-grid">
+          <button class="preset-button" data-value="250" type="button">250 g</button>
+          <button class="preset-button" data-value="500" type="button">500 g</button>
+          <button class="preset-button" data-value="1000" type="button">1000 g</button>
+        </div>
+
+        <div class="selected-weight-box">
+          <div>
+            <div class="metric-label">Selected Weight</div>
+            <strong id="selectedWeightLabel">None</strong>
+          </div>
+          <button id="customToggleButton" class="mini-button" type="button">Custom</button>
+        </div>
+
+        <div id="customWeightPanel" class="custom-weight-panel hidden">
+          <input id="knownWeightInput" inputmode="none" type="text" placeholder="Custom grams" readonly>
+          <div class="number-pad" aria-label="Known weight keypad">
+            <button class="keypad-button" data-key="1" type="button">1</button>
+            <button class="keypad-button" data-key="2" type="button">2</button>
+            <button class="keypad-button" data-key="3" type="button">3</button>
+            <button class="keypad-button" data-key="4" type="button">4</button>
+            <button class="keypad-button" data-key="5" type="button">5</button>
+            <button class="keypad-button" data-key="6" type="button">6</button>
+            <button class="keypad-button" data-key="7" type="button">7</button>
+            <button class="keypad-button" data-key="8" type="button">8</button>
+            <button class="keypad-button" data-key="9" type="button">9</button>
+            <button class="keypad-button" data-key="clear" type="button">Clear</button>
+            <button class="keypad-button" data-key="0" type="button">0</button>
+            <button class="keypad-button" data-key="backspace" type="button">⌫</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="verificationPanel" class="verification-panel hidden">
+        <div class="verify-card">
+          <span>Expected</span>
+          <strong id="verifyExpected">-- g</strong>
+        </div>
+        <div class="verify-card">
+          <span>Measured</span>
+          <strong id="verifyMeasured">-- g</strong>
+        </div>
+        <div class="verify-card">
+          <span>Difference</span>
+          <strong id="verifyDifference">-- g</strong>
+        </div>
+        <div class="verify-card">
+          <span>Result</span>
+          <strong id="verifyResult">--</strong>
+        </div>
+      </div>
+
+      <div id="developerPanel" class="developer-panel hidden">
+        <div>
+          <div class="metric-label">Developer Controls</div>
+          <strong>Mock Scale</strong>
+        </div>
+        <div class="developer-buttons">
+          <button class="dev-button" data-weight="0" type="button">Empty</button>
+          <button class="dev-button" data-weight="500" type="button">500 g</button>
+          <button class="dev-button" data-weight="850" type="button">Spool</button>
+        </div>
+      </div>
+
+      <div id="resultPanel" class="result-panel hidden"></div>
+    </section>
+  </main>
+
+  <script src="/static/js/calibration.js?v=back-button-3"></script>
+  <script src="/static/js/technician-menu.js"></script>
+</body>
+</html>
