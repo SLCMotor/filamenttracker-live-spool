@@ -1207,3 +1207,65 @@ body:has(.calibration-shell) .footer-grid {
   justify-content: center;
   text-align: center;
 }
+
+
+/* Settings */
+.settings-main-simple {
+  display: grid;
+  min-height: 0;
+}
+
+.settings-panel-simple {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.settings-grid-six {
+  width: min(100%, 760px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.settings-tile {
+  min-height: 124px;
+}
+
+
+/* Settings section pages */
+.settings-section-main {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.settings-section-card {
+  width: min(100%, 760px);
+  background: var(--panel);
+  border: 1px solid rgba(38, 54, 79, 0.92);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.settings-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.settings-info-tile {
+  background: rgba(20, 32, 51, 0.68);
+  border: 1px solid rgba(38, 54, 79, 0.72);
+  border-radius: 17px;
+  padding: 16px;
+  min-height: 92px;
+}
+
+.settings-info-tile .value {
+  font-size: 21px;
+}
