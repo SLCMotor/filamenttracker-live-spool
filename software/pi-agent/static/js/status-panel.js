@@ -44,7 +44,7 @@ window.LiveSpoolStatusPanel = {
     const scale = data.scale || {};
     const nfc = data.nfc || {};
 
-    this.setText("nfcFooter", nfc.connected ? (data.tagPresent ? "TAG" : "READY") : "OFFLINE");
+    this.setText("nfcFooter", nfc.connected ? ((nfc.tagPresent || data.tagPresent) ? "TAG" : "READY") : "OFFLINE");
     this.setClass("nfcFooter", this.statusClass(nfc.connected, false));
 
     this.setText("scaleFooter", scale.connected ? (scale.stable ? "READY" : "UNSTABLE") : "OFFLINE");

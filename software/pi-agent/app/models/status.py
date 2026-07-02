@@ -10,3 +10,5 @@ class StatusResponse(BaseModel):
     version: str
     scale: ScaleStatus
     nfc: NfcStatus
+    cpuTempC: float | None = None
+    uptime: str | None = None

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20260701-system-monitor">
 </head>
 <body>
   <div class="screen {% block screen_class %}{% endblock %}">
@@ -16,7 +16,6 @@
 
       <div class="header-right">
         <div class="device-name">{{ device_name }} · v{{ version }}</div>
-        <div class="pill" id="lastUpdated">Starting...</div>
       </div>
     </header>
 
@@ -29,6 +28,7 @@
   </div>
 
   {% block page_scripts %}{% endblock %}
+  <script src="/static/js/status-panel.js?v=20260701-system-monitor"></script>
   <script src="/static/js/technician-menu.js?v=20260630-settings-nav"></script>
 </body>
 </html>
