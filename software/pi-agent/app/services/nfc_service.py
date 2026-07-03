@@ -48,9 +48,9 @@ class NFCService:
             if uid is None:
                 return self._empty_status(connected=True)
 
-            data = self._read_ntag_text()
+            bambu_tag = self._read_bambu_rfid(uid)
+            data = None if bambu_tag and bambu_tag.get("isBambuTag") else self._read_ntag_text()
             filament_tracker_tag = self._parse_filament_tracker_payload(data)
-            bambu_tag = None if data else self._read_bambu_rfid(uid)
 
             return {
                 "connected": True,
