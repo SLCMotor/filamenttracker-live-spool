@@ -21,5 +21,7 @@ def calibration_wizard(request: Request):
             "app_name": config.app_name,
             "device_name": config.device_name,
             "version": config.version,
+            "scale_backend": config.scale_backend,
+            "scale_is_mock": config.scale_backend == "mock",
         },
     )

@@ -1,6 +1,7 @@
-const EMPTY_THRESHOLD_GRAMS = 25;
-const PLACED_THRESHOLD_GRAMS = 25;
+const EMPTY_THRESHOLD_GRAMS = 100;
+const PLACED_THRESHOLD_GRAMS = 100;
 const VERIFY_PASS_GRAMS = 5;
+const SCALE_IS_MOCK = window.liveSpoolScaleIsMock === true;
 
 const steps = [
   { title: "Welcome", icon: "⚖", text: "This wizard will calibrate the Live Spool scale using a known weight.", button: "Start", mode: "manual" },
@@ -156,7 +157,7 @@ function renderStep() {
 
   knownWeightPanel.classList.toggle("hidden", !step.input);
   verificationPanel.classList.toggle("hidden", !step.verification);
-  developerPanel.classList.toggle("hidden", !step.developer);
+  developerPanel.classList.toggle("hidden", !(SCALE_IS_MOCK && step.developer));
 
   if (!step.input) customWeightPanel.classList.add("hidden");
 

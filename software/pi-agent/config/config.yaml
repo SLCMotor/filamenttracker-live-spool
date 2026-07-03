@@ -23,7 +23,7 @@ scale:
     data_pin: 5
     clock_pin: 6
     gain: 128
-    samples: 5
+    samples: 15
 
 nfc:
   enabled: true

@@ -1,4 +1,5 @@
 import statistics
+import threading
 import time
 
 from app.devices.base import ScaleDevice
@@ -22,6 +23,10 @@ class HX711Scale(ScaleDevice):
         self._last_error: str | None = None
         self._data = None
         self._clock = None
+        self._lock = threading.RLock()
+        self._last_read_at = 0.0
+        self._last_stable = False
+        self._last_stddev = 0.0
         self._gain_pulses = self._resolve_gain_pulses(gain)
         self._init_gpio()
 
@@ -32,17 +37,26 @@ class HX711Scale(ScaleDevice):
         if not self._connected:
             return False
 
-        readings = self._read_samples(3)
-        if len(readings) < 3:
-            return False
+        if time.monotonic() - self._last_read_at < 2.0:
+            return self._last_stable
 
-        return statistics.pstdev(readings) < 500
+        self.get_raw_weight_grams()
+        return self._last_stable
 
     def get_raw_weight_grams(self) -> float:
-        readings = self._read_samples(self.samples)
-        if not readings:
-            return 0.0
-        return float(statistics.median(readings))
+        with self._lock:
+            readings = self._read_samples(self.samples)
+            if not readings:
+                self._last_stable = False
+                self._last_stddev = 0.0
+                self._last_read_at = time.monotonic()
+                return 0.0
+
+            self._last_stddev = statistics.pstdev(readings) if len(readings) > 1 else 0.0
+            self._last_stable = self._last_stddev < 1000
+            self._last_read_at = time.monotonic()
+
+            return float(self._trimmed_mean(readings))
 
     def set_mock_raw_weight_grams(self, weight_grams: float) -> None:
         raise RuntimeError("Mock weight is not available for HX711 scale backend.")
@@ -66,6 +80,19 @@ class HX711Scale(ScaleDevice):
             if value is not None:
                 readings.append(value)
         return readings
+
+    @staticmethod
+    def _trimmed_mean(readings: list[int]) -> float:
+        if len(readings) < 5:
+            return float(statistics.median(readings))
+
+        sorted_readings = sorted(readings)
+        trim_count = max(1, len(sorted_readings) // 5)
+        trimmed = sorted_readings[trim_count:-trim_count]
+        if not trimmed:
+            trimmed = sorted_readings
+
+        return float(statistics.mean(trimmed))
 
     def _read_raw_once(self) -> int | None:
         if not self._connected or self._data is None or self._clock is None:
