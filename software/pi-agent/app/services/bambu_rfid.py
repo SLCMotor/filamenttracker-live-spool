@@ -35,6 +35,7 @@ BAMBU_RFID_HKDF_INFO = b"RFID-\x41\x00"
 BAMBU_RFID_SECTOR_KEY_LENGTH = 6
 BAMBU_RFID_SECTOR_KEY_COUNT = 16
 BAMBU_RFID_BLOCKS_PER_SECTOR = 4
+BAMBU_RFID_BLOCK_READ_ATTEMPTS = 2
 
 
 def read_bambu_rfid(pn532: Any, uid: bytes) -> dict[str, Any] | None:
@@ -64,33 +65,27 @@ def read_bambu_rfid(pn532: Any, uid: bytes) -> dict[str, Any] | None:
         sector_start_block = sector_index * BAMBU_RFID_BLOCKS_PER_SECTOR
         trailer_block = sector_start_block + BAMBU_RFID_BLOCKS_PER_SECTOR - 1
 
-        try:
-            authenticated = pn532.mifare_classic_authenticate_block(
-                uid,
-                sector_start_block,
-                MIFARE_CMD_AUTH_A,
-                sector_key,
-            )
-        except Exception as exc:
-            warnings.append(f"Sector {sector_index} auth failed: {exc}")
-            continue
-
-        if not authenticated:
-            warnings.append(f"Sector {sector_index} could not be authenticated.")
-            continue
-
-        authenticated_sectors += 1
-        authenticated_sector_indexes.append(sector_index)
+        sector_authenticated = False
 
         for block_number in range(sector_start_block, trailer_block):
-            try:
-                block = pn532.mifare_classic_read_block(block_number)
-            except Exception as exc:
-                warnings.append(f"Block {block_number} read failed: {exc}")
+            block = _read_authenticated_block(
+                pn532=pn532,
+                uid=uid,
+                sector_key=sector_key,
+                block_number=block_number,
+                warnings=warnings,
+            )
+            if block is None:
                 continue
 
-            if block:
-                blocks[block_number] = bytes(block)
+            sector_authenticated = True
+            blocks[block_number] = block
+
+        if sector_authenticated:
+            authenticated_sectors += 1
+            authenticated_sector_indexes.append(sector_index)
+        else:
+            warnings.append(f"Sector {sector_index} could not be authenticated.")
 
     if not blocks:
         is_bambu_candidate = authenticated_sectors > 0
@@ -142,6 +137,46 @@ def _derive_bambu_sector_keys(uid: bytes) -> list[bytes]:
         okm[index : index + BAMBU_RFID_SECTOR_KEY_LENGTH]
         for index in range(0, len(okm), BAMBU_RFID_SECTOR_KEY_LENGTH)
     ]
+
+
+def _read_authenticated_block(
+    pn532: Any,
+    uid: bytes,
+    sector_key: bytes,
+    block_number: int,
+    warnings: list[str],
+) -> bytes | None:
+    last_error: str | None = None
+
+    for _ in range(BAMBU_RFID_BLOCK_READ_ATTEMPTS):
+        try:
+            authenticated = pn532.mifare_classic_authenticate_block(
+                uid,
+                block_number,
+                MIFARE_CMD_AUTH_A,
+                sector_key,
+            )
+        except Exception as exc:
+            last_error = str(exc)
+            continue
+
+        if not authenticated:
+            last_error = "authentication returned false"
+            continue
+
+        try:
+            block = pn532.mifare_classic_read_block(block_number)
+        except Exception as exc:
+            last_error = str(exc)
+            continue
+
+        if block:
+            return bytes(block)
+
+        last_error = "empty block response"
+
+    warnings.append(f"Block {block_number} read failed: {last_error or 'unknown error'}")
+    return None
 
 
 def _hkdf_expand(pseudo_random_key: bytes, info: bytes, output_length: int) -> bytes:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from typing import Any, Optional
 
 from app.services.bambu_rfid import read_bambu_rfid
@@ -19,6 +20,7 @@ class NFCService:
     def __init__(self) -> None:
         self.pn532 = None
         self.error: Optional[str] = None
+        self._io_lock = threading.RLock()
         self._connect()
 
     def _connect(self) -> None:
@@ -36,6 +38,10 @@ class NFCService:
             self.error = str(exc)
 
     def read(self) -> dict:
+        with self._io_lock:
+            return self._read_locked()
+
+    def _read_locked(self) -> dict:
         if self.pn532 is None:
             self._connect()
 
@@ -69,6 +75,10 @@ class NFCService:
             return self._empty_status(connected=False, error=self.error)
 
     def erase(self) -> dict:
+        with self._io_lock:
+            return self._erase_locked()
+
+    def _erase_locked(self) -> dict:
         if self.pn532 is None:
             self._connect()
 
