@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVICE_NAME="filamenttracker-live-spool"
+SERVICE_NAME="live-spool-agent"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PI_AGENT_DIR="$APP_DIR/software/pi-agent"
-VENV_DIR="$APP_DIR/.venv"
+VENV_DIR="$PI_AGENT_DIR/.venv"
 APP_PORT="8001"
 
 echo "======================================"
@@ -19,6 +19,10 @@ git pull
 
 echo
 echo "Installing/updating Python packages..."
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+  echo "Creating Python virtual environment..."
+  python3 -m venv "$VENV_DIR"
+fi
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
 "$VENV_DIR/bin/pip" install -r "$PI_AGENT_DIR/requirements.txt"
 

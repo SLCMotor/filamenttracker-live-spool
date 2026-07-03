@@ -2,12 +2,12 @@
 set -euo pipefail
 
 APP_NAME="FilamentTracker Live Spool"
-SERVICE_NAME="filamenttracker-live-spool"
+SERVICE_NAME="live-spool-agent"
 APP_PORT="8001"
 APP_USER="${SUDO_USER:-$(whoami)}"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PI_AGENT_DIR="$APP_DIR/software/pi-agent"
-VENV_DIR="$APP_DIR/.venv"
+VENV_DIR="$PI_AGENT_DIR/.venv"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
 echo "======================================"
