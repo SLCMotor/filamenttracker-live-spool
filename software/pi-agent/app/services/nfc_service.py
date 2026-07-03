@@ -54,7 +54,7 @@ class NFCService:
             if uid is None:
                 return self._empty_status(connected=True)
 
-            bambu_tag = self._read_bambu_rfid(uid)
+            bambu_tag = self._read_bambu_rfid(uid) if self._is_bambu_candidate_uid(uid) else None
             data = None if bambu_tag and bambu_tag.get("isBambuTag") else self._read_ntag_text()
             filament_tracker_tag = self._parse_filament_tracker_payload(data)
 
@@ -156,6 +156,11 @@ class NFCService:
                 "rawSummary": "Bambu RFID parse failed",
                 "parseWarnings": [str(exc)],
             }
+
+    def _is_bambu_candidate_uid(self, uid: bytes) -> bool:
+        # Bambu RFID tags use 4-byte MIFARE Classic UIDs. NTAG-style NFC tags
+        # commonly use 7-byte UIDs and should go straight to NDEF parsing.
+        return len(uid) == 4
 
     def _tag_type(
         self,
