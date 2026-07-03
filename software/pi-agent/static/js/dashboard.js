@@ -20,6 +20,19 @@ function dashboardWeight(value) {
   return `${rounded}`;
 }
 
+function signedDashboardWeight(value) {
+  const grams = Number(value);
+  if (!Number.isFinite(grams)) {
+    return "--";
+  }
+
+  const rounded = Math.abs(grams) < 1 ? 0 : Math.round(grams);
+  if (rounded > 0) {
+    return `+${rounded}g`;
+  }
+  return `${rounded}g`;
+}
+
 function pickSpoolName(tag) {
   if (!tag) {
     return "No spool loaded";
@@ -169,6 +182,7 @@ function subtitleForTag(data, tagType) {
 function updateSpoolDetails(data) {
   const tag = data.spool || data.tag || null;
   const tagType = data.tagType || data.nfc?.tagType || null;
+  const hasTagWeight = data.tagWeightGrams !== null && data.tagWeightGrams !== undefined;
 
   setText("weight", dashboardWeight(data.weightGrams));
   setText("spoolName", spoolTitleForData(data, tag, tagType));
@@ -178,7 +192,13 @@ function updateSpoolDetails(data) {
   setText("material", pickField(tag, ["material", "variant", "filamentType", "type"]));
   setText("color", pickField(tag, ["colorName", "color", "colorHex"]));
   setText("tagId", valueOrDash(data.tagId));
-  setText("changed", data.tagChanged || data.weightChanged ? "Yes" : "No");
+  setText("changedLabel", hasTagWeight ? "Weight Diff" : "Changed");
+  setText(
+    "changed",
+    hasTagWeight
+      ? (data.tagWeightChanged ? `Yes ${signedDashboardWeight(data.weightDeltaGrams)}` : "No")
+      : (data.tagChanged || data.weightChanged ? "Yes" : "No")
+  );
 
   setColorSwatch(tag);
 }

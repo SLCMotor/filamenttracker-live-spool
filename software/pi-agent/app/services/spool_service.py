@@ -8,6 +8,8 @@ from typing import Any
 from app.services.nfc_service import get_nfc
 from app.services.scale_service import scale_service
 
+TAG_WEIGHT_TOLERANCE_GRAMS = 5.0
+
 
 class SpoolService:
     def __init__(self) -> None:
@@ -28,6 +30,10 @@ class SpoolService:
             "tagPresent": False,
             "tagId": None,
             "tagChanged": False,
+            "tagWeightGrams": None,
+            "weightDeltaGrams": None,
+            "tagWeightChanged": False,
+            "weightToleranceGrams": TAG_WEIGHT_TOLERANCE_GRAMS,
             "lastTagChangeAt": None,
             "spool": None,
             "nfc": None,
@@ -99,6 +105,15 @@ class SpoolService:
             self.last_weight_grams = weight_grams
             self.last_weight_change_at = self._now()
 
+        spool = nfc.get("tag")
+        tag_weight_grams = self._number_or_none(spool.get("remainingGrams")) if isinstance(spool, dict) else None
+        weight_delta_grams = None
+        tag_weight_changed = False
+
+        if tag_weight_grams is not None:
+            weight_delta_grams = round(weight_grams - tag_weight_grams, 2)
+            tag_weight_changed = abs(weight_delta_grams) >= TAG_WEIGHT_TOLERANCE_GRAMS
+
         return {
             "loaded": loaded,
             "weightGrams": weight_grams,
@@ -107,14 +122,27 @@ class SpoolService:
             "tagPresent": nfc.get("tagPresent", False),
             "tagId": tag_id,
             "tagChanged": tag_changed,
+            "tagWeightGrams": tag_weight_grams,
+            "weightDeltaGrams": weight_delta_grams,
+            "tagWeightChanged": tag_weight_changed,
+            "weightToleranceGrams": TAG_WEIGHT_TOLERANCE_GRAMS,
             "lastTagChangeAt": self.last_tag_change_at,
-            "spool": nfc.get("tag"),
+            "spool": spool,
             "nfc": nfc,
             "scale": scale,
             "monitorRunning": True,
             "lastUpdatedAt": self._now(),
             "error": None,
         }
+
+    def _number_or_none(self, value: Any) -> float | None:
+        if value is None or value == "":
+            return None
+
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()

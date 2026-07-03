@@ -352,6 +352,9 @@ class NFCService:
                 "material": parsed.get("material"),
                 "colorName": parsed.get("colorName"),
                 "colorHex": parsed.get("colorHex"),
+                "initialGrams": parsed.get("initialGrams"),
+                "remainingGrams": parsed.get("remainingGrams"),
+                "updatedAtEpochMs": parsed.get("updatedAtEpochMs"),
             }
 
         except Exception:
