@@ -44,9 +44,9 @@
           <strong>Run</strong>
         </button>
 
-        <button class="settings-command disabled" type="button" disabled>
+        <button id="writeNfcButton" class="settings-command" type="button">
           <span>Write Tag</span>
-          <strong>Future</strong>
+          <strong>Write</strong>
         </button>
 
         <button id="eraseNfcButton" class="settings-command danger" type="button">
@@ -67,9 +67,11 @@
   const nfcStatus = document.getElementById("nfcStatus");
   const nfcTag = document.getElementById("nfcTag");
   const testButton = document.getElementById("testNfcButton");
+  const writeButton = document.getElementById("writeNfcButton");
   const eraseButton = document.getElementById("eraseNfcButton");
 
   const testButtonLabel = testButton.querySelector("strong");
+  const writeButtonLabel = writeButton.querySelector("strong");
   const eraseButtonLabel = eraseButton.querySelector("strong");
 
   let busy = false;
@@ -78,6 +80,12 @@
 
   function setStatus(label, good) {
     nfcStatus.innerHTML = `<i class="status-dot ${good ? "good-dot" : ""}"></i>${label}`;
+  }
+
+  function setButtonsDisabled(disabled) {
+    testButton.disabled = disabled;
+    writeButton.disabled = disabled;
+    eraseButton.disabled = disabled;
   }
 
   async function readNfc() {
@@ -113,8 +121,7 @@
 
     busy = true;
     testStartedAt = Date.now();
-    testButton.disabled = true;
-    eraseButton.disabled = true;
+    setButtonsDisabled(true);
     setStatus("Waiting for Tag", false);
     nfcTag.textContent = "Present tag";
     testButtonLabel.textContent = "Waiting";
@@ -126,8 +133,7 @@
         if (!data.connected) {
           clearInterval(testTimer);
           busy = false;
-          testButton.disabled = false;
-          eraseButton.disabled = false;
+          setButtonsDisabled(false);
           setStatus("Offline", false);
           nfcTag.textContent = data.error || "Unavailable";
           testButtonLabel.textContent = "Failed";
@@ -138,8 +144,7 @@
         if (data.tagPresent) {
           clearInterval(testTimer);
           busy = false;
-          testButton.disabled = false;
-          eraseButton.disabled = false;
+          setButtonsDisabled(false);
           setStatus("Test Passed", true);
           nfcTag.textContent = data.tagId || "Detected";
           testButtonLabel.textContent = "Passed";
@@ -153,8 +158,7 @@
         if (Date.now() - testStartedAt > 10000) {
           clearInterval(testTimer);
           busy = false;
-          testButton.disabled = false;
-          eraseButton.disabled = false;
+          setButtonsDisabled(false);
           setStatus("No Tag Detected", false);
           nfcTag.textContent = "None";
           testButtonLabel.textContent = "Timeout";
@@ -166,14 +170,98 @@
       } catch (error) {
         clearInterval(testTimer);
         busy = false;
-        testButton.disabled = false;
-        eraseButton.disabled = false;
+        setButtonsDisabled(false);
         setStatus("Error", false);
         nfcTag.textContent = "Unavailable";
         testButtonLabel.textContent = "Failed";
         setTimeout(() => testButtonLabel.textContent = "Run", 1800);
       }
     }, 500);
+  }
+
+  function buildWritePayload() {
+    return {
+      app: "FT",
+      ver: 1,
+      type: "diagnostic",
+      spoolId: "live-spool-test",
+      filamentId: "live-spool-test",
+      brand: "Live Spool",
+      material: "TEST",
+      colorName: "Test Green",
+      colorHex: "#40D39C"
+    };
+  }
+
+  async function writeTestTag() {
+    if (busy) return;
+
+    const confirmed = window.confirm(
+      "Write NFC Tag?\n\nThis writes a Live Spool test payload and replaces existing tag data."
+    );
+
+    if (!confirmed) return;
+
+    busy = true;
+    setButtonsDisabled(true);
+    setStatus("Waiting for Tag", false);
+    nfcTag.textContent = "Present writable tag";
+    writeButtonLabel.textContent = "Waiting";
+
+    const requestId = `settings-write-${Date.now()}`;
+
+    try {
+      const response = await fetch("/nfc/write", {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          requestId,
+          timeoutSeconds: 60,
+          payload: buildWritePayload(),
+          display: {
+            locationName: "NFC settings test"
+          }
+        })
+      });
+
+      let status = await response.json();
+
+      const terminalStates = ["succeeded", "failed", "timed_out", "canceled", "busy", "not_found"];
+
+      while (!terminalStates.includes(status.state)) {
+        setStatus(status.message || "Writing", status.state !== "failed");
+        nfcTag.textContent = status.tagId || "Present writable tag";
+        writeButtonLabel.textContent = status.state === "ready" ? "Waiting" : "Busy";
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        const statusResponse = await fetch(`/nfc/write/${requestId}`, { cache: "no-store" });
+        status = await statusResponse.json();
+      }
+
+      if (status.state === "succeeded") {
+        setStatus("Write Successful", true);
+        nfcTag.textContent = status.tagId || "Written";
+        writeButtonLabel.textContent = "Done";
+      } else {
+        setStatus(status.message || "Write Failed", false);
+        nfcTag.textContent = status.errorCode || "Failed";
+        writeButtonLabel.textContent = "Failed";
+      }
+    } catch (error) {
+      setStatus("Write Failed", false);
+      nfcTag.textContent = "Unavailable";
+      writeButtonLabel.textContent = "Failed";
+    }
+
+    setTimeout(() => {
+      busy = false;
+      setButtonsDisabled(false);
+      writeButtonLabel.textContent = "Write";
+      refreshNfcStatus();
+    }, 2200);
   }
 
   async function eraseTag() {
@@ -184,8 +272,7 @@
     if (!confirmed) return;
 
     busy = true;
-    testButton.disabled = true;
-    eraseButton.disabled = true;
+    setButtonsDisabled(true);
     setStatus("Waiting for Tag", false);
     nfcTag.textContent = "Present tag to erase";
     eraseButtonLabel.textContent = "Waiting";
@@ -215,14 +302,14 @@
 
     setTimeout(() => {
       busy = false;
-      testButton.disabled = false;
-      eraseButton.disabled = false;
+      setButtonsDisabled(false);
       eraseButtonLabel.textContent = "Erase";
       refreshNfcStatus();
     }, 2200);
   }
 
   testButton.addEventListener("click", runReaderTest);
+  writeButton.addEventListener("click", writeTestTag);
   eraseButton.addEventListener("click", eraseTag);
 
   refreshNfcStatus();
