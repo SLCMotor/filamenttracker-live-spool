@@ -1,142 +1,103 @@
-(function () {
-  const HOLD_MS = 2500;
+const techMenuItems = [
+  { label: "Dashboard", href: "/dashboard", detail: "Live view" },
+  { label: "Diagnostics", href: "/diagnostics", detail: "System tools" },
+  { label: "Calibration", href: "/calibration-wizard", detail: "Scale wizard" },
+  { label: "Settings", href: "/settings", detail: "Device setup" },
+];
 
-  const menuItems = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Calibration", href: "/calibration-wizard" },
-    { label: "Diagnostics", href: "/diagnostics" },
-    { label: "Settings", href: "/settings" },
-    { label: "About", href: "#", disabled: true },
-  ];
+let techMenuPressTimer = null;
+let techMenuProgressTimer = null;
+let techMenuPressStartedAt = 0;
+const techMenuHoldMs = 900;
 
-  let holdTimer = null;
-  let progressTimer = null;
-  let startedAt = 0;
-  let activeTrigger = null;
+function closeTechMenu() {
+  const overlay = document.querySelector(".tech-menu-overlay");
+  if (overlay) overlay.remove();
+}
 
-  function buildMenu() {
-    if (document.getElementById("technicianMenuOverlay")) return;
+function openTechMenu() {
+  closeTechMenu();
 
-    const overlay = document.createElement("div");
-    overlay.id = "technicianMenuOverlay";
-    overlay.className = "tech-menu-overlay hidden";
+  const overlay = document.createElement("div");
+  overlay.className = "tech-menu-overlay";
 
-    overlay.innerHTML = `
-      <div class="tech-menu-card">
-        <div class="tech-menu-header">
-          <div>
-            <div class="eyebrow">Hidden Access</div>
-            <h2>Technician Menu</h2>
-          </div>
-          <button id="closeTechMenu" class="tech-menu-close" type="button">×</button>
-        </div>
+  const card = document.createElement("div");
+  card.className = "tech-menu-card";
 
-        <div class="tech-menu-list">
-          ${menuItems.map((item) => `
-            <a
-              class="tech-menu-item ${item.disabled ? "disabled" : ""}"
-              href="${item.href}"
-              ${item.disabled ? "aria-disabled='true'" : ""}
-            >
-              <span>${item.label}</span>
-              <strong>${item.disabled ? "Soon" : "Open"}</strong>
-            </a>
-          `).join("")}
-        </div>
-      </div>
+  card.innerHTML = `
+    <div class="tech-menu-header">
+      <h2>Technician Menu</h2>
+      <button class="tech-menu-close" type="button">×</button>
+    </div>
+    <div class="tech-menu-list"></div>
+  `;
+
+  const list = card.querySelector(".tech-menu-list");
+
+  techMenuItems.forEach((item) => {
+    const link = document.createElement("a");
+    link.className = "tech-menu-item";
+    link.href = item.href;
+    link.innerHTML = `
+      <span>${item.label}</span>
+      <strong>${item.detail}</strong>
     `;
+    list.appendChild(link);
+  });
 
-    document.body.appendChild(overlay);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
 
-    document.getElementById("closeTechMenu").addEventListener("click", closeMenu);
+  card.querySelector(".tech-menu-close").addEventListener("click", closeTechMenu);
 
-    overlay.addEventListener("click", (event) => {
-      if (event.target === overlay) closeMenu();
-    });
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeTechMenu();
+  });
+}
 
-    overlay.querySelectorAll(".tech-menu-item.disabled").forEach((item) => {
-      item.addEventListener("click", (event) => event.preventDefault());
-    });
+function setHoldProgress(trigger, percent) {
+  trigger.style.setProperty("--hold-progress", `${percent}%`);
+}
+
+function clearTechMenuTimer(trigger) {
+  if (techMenuPressTimer) {
+    clearTimeout(techMenuPressTimer);
+    techMenuPressTimer = null;
   }
 
-  function openMenu() {
-    const overlay = document.getElementById("technicianMenuOverlay");
-    if (overlay) overlay.classList.remove("hidden");
+  if (techMenuProgressTimer) {
+    clearInterval(techMenuProgressTimer);
+    techMenuProgressTimer = null;
   }
 
-  function closeMenu() {
-    const overlay = document.getElementById("technicianMenuOverlay");
-    if (overlay) overlay.classList.add("hidden");
-  }
+  if (trigger) setHoldProgress(trigger, 0);
+}
 
-  function resetProgress(trigger) {
-    if (!trigger) return;
-    trigger.style.setProperty("--hold-progress", "0%");
-    trigger.classList.remove("tech-hold-active");
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  const trigger = document.querySelector("[data-tech-menu-trigger]");
+  if (!trigger) return;
 
-  function clearHold() {
-    clearTimeout(holdTimer);
-    clearInterval(progressTimer);
+  trigger.classList.add("tech-menu-trigger");
 
-    holdTimer = null;
-    progressTimer = null;
+  trigger.addEventListener("pointerdown", () => {
+    clearTechMenuTimer(trigger);
 
-    resetProgress(activeTrigger);
-    activeTrigger = null;
-  }
+    techMenuPressStartedAt = Date.now();
+    setHoldProgress(trigger, 0);
 
-  function startHold(trigger, event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
+    techMenuProgressTimer = setInterval(() => {
+      const elapsed = Date.now() - techMenuPressStartedAt;
+      const percent = Math.min(100, Math.round((elapsed / techMenuHoldMs) * 100));
+      setHoldProgress(trigger, percent);
+    }, 30);
 
-    clearHold();
+    techMenuPressTimer = setTimeout(() => {
+      clearTechMenuTimer(trigger);
+      openTechMenu();
+    }, techMenuHoldMs);
+  });
 
-    activeTrigger = trigger;
-    startedAt = Date.now();
-
-    trigger.classList.add("tech-hold-active");
-    trigger.style.setProperty("--hold-progress", "0%");
-
-    holdTimer = setTimeout(() => {
-      const finishedTrigger = activeTrigger;
-      clearHold();
-      resetProgress(finishedTrigger);
-      openMenu();
-    }, HOLD_MS);
-
-    progressTimer = setInterval(() => {
-      if (!activeTrigger) return;
-
-      const elapsed = Date.now() - startedAt;
-      const percent = Math.min(100, (elapsed / HOLD_MS) * 100);
-      activeTrigger.style.setProperty("--hold-progress", `${percent}%`);
-    }, 40);
-  }
-
-  function attachTrigger() {
-    const trigger = document.querySelector("[data-tech-menu-trigger]");
-
-    if (!trigger) return;
-
-    trigger.classList.add("tech-menu-trigger");
-    trigger.title = "Press and hold for Technician Menu";
-    trigger.style.touchAction = "none";
-
-    trigger.addEventListener("pointerdown", (event) => startHold(trigger, event));
-    trigger.addEventListener("pointerup", clearHold);
-    trigger.addEventListener("pointercancel", clearHold);
-
-    trigger.addEventListener("touchstart", (event) => startHold(trigger, event), { passive: false });
-    trigger.addEventListener("touchend", clearHold);
-    trigger.addEventListener("touchcancel", clearHold);
-
-    trigger.addEventListener("mousedown", (event) => startHold(trigger, event));
-    trigger.addEventListener("mouseup", clearHold);
-  }
-
-  buildMenu();
-  attachTrigger();
-})();
+  trigger.addEventListener("pointerup", () => clearTechMenuTimer(trigger));
+  trigger.addEventListener("pointerleave", () => clearTechMenuTimer(trigger));
+  trigger.addEventListener("pointercancel", () => clearTechMenuTimer(trigger));
+});

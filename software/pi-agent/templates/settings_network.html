@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Network Settings{% endblock %}
+{% block screen_class %}settings-screen{% endblock %}
+{% block main_class %}settings-section-main{% endblock %}
+{% block header_title %}Network{% endblock %}
+{% block header_subtitle %}Local API, hostname, and connection status{% endblock %}
+
+{% block content %}
+<section class="settings-section-card settings-control-panel compact-control-panel">
+  <div class="settings-panel-column">
+    <div>
+      <div class="section-kicker">Network Status</div>
+
+      <div class="settings-value-list">
+        <div class="settings-value-row">
+          <span>Status</span>
+          <strong><i class="status-dot good-dot"></i>{{ network.status }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Hostname</span>
+          <strong>{{ network.hostname }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>IP Address</span>
+          <strong>{{ network.ip_address }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Wi-Fi Status</span>
+          <strong>{{ network.wifi_status }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Ethernet Status</span>
+          <strong>{{ network.ethernet_status }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>API Port</span>
+          <strong>{{ network.api_port }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>API Status</span>
+          <strong><i class="status-dot good-dot"></i>{{ network.api_status }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block tech_nav %}
+<nav class="tech-nav">
+  <a class="nav-button" href="/settings">← Settings</a>
+  <a class="nav-button" href="/dashboard">Dashboard</a>
+  <a class="nav-button" href="/diagnostics">Diagnostics</a>
+</nav>
+{% endblock %}

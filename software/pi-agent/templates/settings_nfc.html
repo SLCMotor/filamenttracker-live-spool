@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} NFC Settings{% endblock %}
+{% block screen_class %}settings-screen{% endblock %}
+{% block main_class %}settings-section-main{% endblock %}
+{% block header_title %}NFC{% endblock %}
+{% block header_subtitle %}Reader management and tag operations{% endblock %}
+
+{% block content %}
+<section class="settings-section-card settings-control-panel compact-control-panel">
+  <div class="settings-panel-column">
+    <div>
+      <div class="section-kicker">Reader</div>
+
+      <div class="settings-value-list">
+        <div class="settings-value-row">
+          <span>Status</span>
+          <strong id="nfcStatus"><i class="status-dot"></i>Checking</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Reader</span>
+          <strong>PN532</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Connection</span>
+          <strong>I²C</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Tag</span>
+          <strong id="nfcTag">None</strong>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-kicker">Tag Operations</div>
+
+      <div class="settings-command-list settings-command-list-four">
+        <button id="testNfcButton" class="settings-command" type="button">
+          <span>Test Reader</span>
+          <strong>Run</strong>
+        </button>
+
+        <button class="settings-command disabled" type="button" disabled>
+          <span>Write Tag</span>
+          <strong>Future</strong>
+        </button>
+
+        <button id="eraseNfcButton" class="settings-command danger" type="button">
+          <span>Erase Tag</span>
+          <strong>Erase</strong>
+        </button>
+
+        <button class="settings-command disabled" type="button" disabled>
+          <span>Assign Tag</span>
+          <strong>Future</strong>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const nfcStatus = document.getElementById("nfcStatus");
+  const nfcTag = document.getElementById("nfcTag");
+  const testButton = document.getElementById("testNfcButton");
+  const eraseButton = document.getElementById("eraseNfcButton");
+
+  const testButtonLabel = testButton.querySelector("strong");
+  const eraseButtonLabel = eraseButton.querySelector("strong");
+
+  let busy = false;
+  let testTimer = null;
+  let testStartedAt = 0;
+
+  function setStatus(label, good) {
+    nfcStatus.innerHTML = `<i class="status-dot ${good ? "good-dot" : ""}"></i>${label}`;
+  }
+
+  async function readNfc() {
+    const response = await fetch("/nfc", { cache: "no-store" });
+    return await response.json();
+  }
+
+  function applyLiveStatus(data) {
+    if (data.connected) {
+      setStatus(data.tagPresent ? "Tag Detected" : "Ready", true);
+      nfcTag.textContent = data.tagId || "None";
+      return;
+    }
+
+    setStatus("Offline", false);
+    nfcTag.textContent = data.error || "Unavailable";
+  }
+
+  async function refreshNfcStatus() {
+    if (busy) return;
+
+    try {
+      const data = await readNfc();
+      applyLiveStatus(data);
+    } catch (error) {
+      setStatus("Error", false);
+      nfcTag.textContent = "Unavailable";
+    }
+  }
+
+  async function runReaderTest() {
+    if (busy) return;
+
+    busy = true;
+    testStartedAt = Date.now();
+    testButton.disabled = true;
+    eraseButton.disabled = true;
+    setStatus("Waiting for Tag", false);
+    nfcTag.textContent = "Present tag";
+    testButtonLabel.textContent = "Waiting";
+
+    testTimer = setInterval(async () => {
+      try {
+        const data = await readNfc();
+
+        if (!data.connected) {
+          clearInterval(testTimer);
+          busy = false;
+          testButton.disabled = false;
+          eraseButton.disabled = false;
+          setStatus("Offline", false);
+          nfcTag.textContent = data.error || "Unavailable";
+          testButtonLabel.textContent = "Failed";
+          setTimeout(() => testButtonLabel.textContent = "Run", 1800);
+          return;
+        }
+
+        if (data.tagPresent) {
+          clearInterval(testTimer);
+          busy = false;
+          testButton.disabled = false;
+          eraseButton.disabled = false;
+          setStatus("Test Passed", true);
+          nfcTag.textContent = data.tagId || "Detected";
+          testButtonLabel.textContent = "Passed";
+          setTimeout(() => {
+            testButtonLabel.textContent = "Run";
+            refreshNfcStatus();
+          }, 1800);
+          return;
+        }
+
+        if (Date.now() - testStartedAt > 10000) {
+          clearInterval(testTimer);
+          busy = false;
+          testButton.disabled = false;
+          eraseButton.disabled = false;
+          setStatus("No Tag Detected", false);
+          nfcTag.textContent = "None";
+          testButtonLabel.textContent = "Timeout";
+          setTimeout(() => {
+            testButtonLabel.textContent = "Run";
+            refreshNfcStatus();
+          }, 1800);
+        }
+      } catch (error) {
+        clearInterval(testTimer);
+        busy = false;
+        testButton.disabled = false;
+        eraseButton.disabled = false;
+        setStatus("Error", false);
+        nfcTag.textContent = "Unavailable";
+        testButtonLabel.textContent = "Failed";
+        setTimeout(() => testButtonLabel.textContent = "Run", 1800);
+      }
+    }, 500);
+  }
+
+  async function eraseTag() {
+    if (busy) return;
+
+    const confirmed = window.confirm("Erase NFC Tag?\n\nThis permanently removes FilamentTracker data from the tag.");
+
+    if (!confirmed) return;
+
+    busy = true;
+    testButton.disabled = true;
+    eraseButton.disabled = true;
+    setStatus("Waiting for Tag", false);
+    nfcTag.textContent = "Present tag to erase";
+    eraseButtonLabel.textContent = "Waiting";
+
+    try {
+      const response = await fetch("/nfc/erase", {
+        method: "POST",
+        cache: "no-store"
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus("Erase Successful", true);
+        nfcTag.textContent = data.tagId || "Erased";
+        eraseButtonLabel.textContent = "Done";
+      } else {
+        setStatus(data.tagPresent ? "Erase Failed" : "No Tag Detected", false);
+        nfcTag.textContent = data.message || "Failed";
+        eraseButtonLabel.textContent = "Failed";
+      }
+    } catch (error) {
+      setStatus("Erase Failed", false);
+      nfcTag.textContent = "Unavailable";
+      eraseButtonLabel.textContent = "Failed";
+    }
+
+    setTimeout(() => {
+      busy = false;
+      testButton.disabled = false;
+      eraseButton.disabled = false;
+      eraseButtonLabel.textContent = "Erase";
+      refreshNfcStatus();
+    }, 2200);
+  }
+
+  testButton.addEventListener("click", runReaderTest);
+  eraseButton.addEventListener("click", eraseTag);
+
+  refreshNfcStatus();
+  setInterval(refreshNfcStatus, 3000);
+</script>
+{% endblock %}
+
+{% block tech_nav %}
+<nav class="tech-nav">
+  <a class="nav-button" href="/settings">← Settings</a>
+  <a class="nav-button" href="/dashboard">Dashboard</a>
+  <a class="nav-button" href="/diagnostics">Diagnostics</a>
+</nav>
+{% endblock %}

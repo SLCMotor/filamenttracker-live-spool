@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} System Settings{% endblock %}
+{% block screen_class %}settings-screen{% endblock %}
+{% block main_class %}settings-section-main{% endblock %}
+{% block header_title %}System{% endblock %}
+{% block header_subtitle %}Application and Raspberry Pi power controls{% endblock %}
+
+{% block content %}
+<section class="settings-section-card settings-control-panel compact-control-panel">
+  <div class="settings-panel-column">
+    <div>
+      <div class="section-kicker">Device</div>
+
+      <div class="settings-value-list">
+        <div class="settings-value-row">
+          <span>Name</span>
+          <strong>{{ device_name }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Software</span>
+          <strong>v{{ version }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Environment</span>
+          <strong>{{ environment }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-kicker">System Controls</div>
+
+      <div class="settings-command-list">
+        <button class="settings-command warning" type="button"
+                data-system-command="/system/restart-app"
+                data-after-command="reload"
+                data-title="Restart Application?"
+                data-message="This will restart the Live Spool app. The screen will refresh after a few seconds.">
+          <span>Restart App</span>
+          <strong>Confirm</strong>
+        </button>
+
+        <button class="settings-command warning" type="button"
+                data-system-command="/system/reboot"
+                data-after-command="reboot"
+                data-title="Reboot Raspberry Pi?"
+                data-message="This will restart the entire Raspberry Pi. The display will go offline briefly.">
+          <span>Reboot Pi</span>
+          <strong>Confirm</strong>
+        </button>
+
+        <button class="settings-command danger" type="button"
+                data-system-command="/system/shutdown"
+                data-after-command="shutdown"
+                data-title="Shutdown Raspberry Pi?"
+                data-message="This will power off the Raspberry Pi. You will need to unplug and reconnect power to turn it back on.">
+          <span>Shutdown Pi</span>
+          <strong>Confirm</strong>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="systemConfirm" class="system-confirm hidden">
+  <div class="system-confirm-card">
+    <h2 id="systemConfirmTitle">Confirm</h2>
+    <p id="systemConfirmMessage">Are you sure?</p>
+
+    <div class="system-confirm-actions">
+      <button id="systemCancelButton" class="nav-button" type="button">Cancel</button>
+      <button id="systemConfirmButton" class="touch-button primary" type="button">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .system-confirm {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.70);
+    backdrop-filter: blur(12px);
+  }
+
+  .system-confirm-card {
+    width: min(92vw, 620px);
+    border-radius: 28px;
+    padding: 26px;
+    background: linear-gradient(145deg, rgba(20, 31, 42, 0.98), rgba(9, 14, 22, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+    text-align: center;
+  }
+
+  .system-confirm-card h2 {
+    margin: 0 0 12px;
+    font-size: 34px;
+  }
+
+  .system-confirm-card p {
+    margin: 0;
+    color: rgba(246, 251, 255, 0.72);
+    font-size: 20px;
+    line-height: 1.35;
+  }
+
+  .system-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .system-confirm-actions .nav-button,
+  .system-confirm-actions .touch-button {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock %}
+
+{% block tech_nav %}
+<nav class="tech-nav">
+  <a class="nav-button" href="/settings">← Settings</a>
+  <a class="nav-button" href="/dashboard">Dashboard</a>
+  <a class="nav-button" href="/diagnostics">Diagnostics</a>
+</nav>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  const modal = document.getElementById("systemConfirm");
+  const title = document.getElementById("systemConfirmTitle");
+  const message = document.getElementById("systemConfirmMessage");
+  const cancelButton = document.getElementById("systemCancelButton");
+  const confirmButton = document.getElementById("systemConfirmButton");
+
+  let pendingCommand = null;
+  let pendingAfterCommand = null;
+
+  document.querySelectorAll("[data-system-command]").forEach((button) => {
+    button.addEventListener("click", () => {
+      pendingCommand = button.dataset.systemCommand;
+      pendingAfterCommand = button.dataset.afterCommand;
+      title.textContent = button.dataset.title;
+      message.textContent = button.dataset.message;
+      confirmButton.disabled = false;
+      confirmButton.textContent = "Confirm";
+      modal.classList.remove("hidden");
+    });
+  });
+
+  cancelButton.addEventListener("click", () => {
+    pendingCommand = null;
+    pendingAfterCommand = null;
+    modal.classList.add("hidden");
+  });
+
+  confirmButton.addEventListener("click", async () => {
+    if (!pendingCommand) return;
+
+    confirmButton.disabled = true;
+    confirmButton.textContent = "Working...";
+    cancelButton.classList.add("hidden");
+
+    try {
+      await fetch(pendingCommand, { method: "POST" });
+    } catch (error) {
+      // Restart/reboot/shutdown may interrupt the request. That is expected.
+    }
+
+    if (pendingAfterCommand === "reload") {
+      title.textContent = "Restarting App";
+      message.textContent = "Live Spool is restarting. This screen will refresh automatically.";
+      setTimeout(() => {
+        window.location.href = "/settings/general?restart=" + Date.now();
+      }, 4500);
+      return;
+    }
+
+    if (pendingAfterCommand === "reboot") {
+      title.textContent = "Rebooting Pi";
+      message.textContent = "The Raspberry Pi is rebooting. The screen may go blank briefly.";
+      return;
+    }
+
+    if (pendingAfterCommand === "shutdown") {
+      title.textContent = "Shutting Down";
+      message.textContent = "The Raspberry Pi is shutting down. Unplug and reconnect power to turn it back on.";
+      return;
+    }
+
+    message.textContent = "Command sent.";
+  });
+</script>
+{% endblock %}

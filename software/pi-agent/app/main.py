@@ -13,6 +13,7 @@ from app.api.nfc import router as nfc_router
 from app.api.settings_ui import router as settings_ui_router
 from app.api.spool import router as spool_router
 from app.api.status import router as status_router
+from app.api.system import router as system_router
 from app.api.weight import router as weight_router
 from app.core.config import config
 from app.services.spool_service import start_spool_monitor, stop_spool_monitor
@@ -60,4 +61,5 @@ app.include_router(nfc_router)
 app.include_router(spool_router)
 app.include_router(calibration_router)
 app.include_router(calibration_ui_router)
+app.include_router(system_router)
 app.include_router(mock_router)

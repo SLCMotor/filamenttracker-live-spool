@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Display Settings{% endblock %}
+{% block screen_class %}settings-screen{% endblock %}
+{% block main_class %}settings-section-main{% endblock %}
+{% block header_title %}Display{% endblock %}
+{% block header_subtitle %}Kiosk, touchscreen, and display configuration{% endblock %}
+
+{% block content %}
+<section class="settings-section-card settings-control-panel compact-control-panel">
+  <div class="settings-panel-column">
+    <div>
+      <div class="section-kicker">Display Status</div>
+
+      <div class="settings-value-list">
+        <div class="settings-value-row">
+          <span>Touchscreen</span>
+          <strong>{{ display.touchscreen }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Resolution</span>
+          <strong>{{ display.resolution }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Kiosk Mode</span>
+          <strong>
+            {% if display.kiosk_mode in ["Enabled", "Configured"] %}
+              <i class="status-dot good-dot"></i>
+            {% endif %}
+            {{ display.kiosk_mode }}
+          </strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Cursor Hide</span>
+          <strong>
+            {% if display.cursor_hide == "Enabled" %}
+              <i class="status-dot good-dot"></i>
+            {% endif %}
+            {{ display.cursor_hide }}
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block tech_nav %}
+<nav class="tech-nav">
+  <a class="nav-button" href="/settings">← Settings</a>
+  <a class="nav-button" href="/dashboard">Dashboard</a>
+  <a class="nav-button" href="/diagnostics">Diagnostics</a>
+</nav>
+{% endblock %}

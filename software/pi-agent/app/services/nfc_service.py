@@ -62,6 +62,62 @@ class NFCService:
             self.pn532 = None
             return self._empty_status(connected=False, error=self.error)
 
+    def erase(self) -> dict:
+        if self.pn532 is None:
+            self._connect()
+
+        if self.pn532 is None:
+            return {
+                "success": False,
+                "connected": False,
+                "tagPresent": False,
+                "tagId": None,
+                "message": self.error or "NFC reader unavailable",
+            }
+
+        try:
+            uid = self.pn532.read_passive_target(timeout=8)
+
+            if uid is None:
+                return {
+                    "success": False,
+                    "connected": True,
+                    "tagPresent": False,
+                    "tagId": None,
+                    "message": "No tag detected",
+                }
+
+            tag_id = uid.hex().upper()
+
+            # Safe logical erase for NTAG: replace user data with an empty NDEF message.
+            # Avoids touching lock/configuration pages.
+            self.pn532.ntag2xx_write_block(4, bytes([0x03, 0x00, 0xFE, 0x00]))
+
+            for page in range(5, 40):
+                try:
+                    self.pn532.ntag2xx_write_block(page, bytes([0x00, 0x00, 0x00, 0x00]))
+                except Exception:
+                    break
+
+            return {
+                "success": True,
+                "connected": True,
+                "tagPresent": True,
+                "tagId": tag_id,
+                "message": "Erase successful",
+            }
+
+        except Exception as exc:
+            self.error = str(exc)
+            self.pn532 = None
+            return {
+                "success": False,
+                "connected": False,
+                "tagPresent": False,
+                "tagId": None,
+                "message": self.error,
+            }
+
     def _empty_status(self, connected: bool, error: Optional[str] = None) -> dict:
         return {
             "connected": connected,
@@ -195,3 +251,7 @@ nfc_service = NFCService()
 
 def get_nfc() -> dict:
     return nfc_service.read()
+
+
+def erase_nfc_tag() -> dict:
+    return nfc_service.erase()

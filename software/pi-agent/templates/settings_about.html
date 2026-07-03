@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} About{% endblock %}
+{% block screen_class %}settings-screen{% endblock %}
+{% block main_class %}settings-section-main{% endblock %}
+{% block header_title %}About{% endblock %}
+{% block header_subtitle %}Device and software information{% endblock %}
+
+{% block content %}
+<section class="settings-section-card settings-control-panel compact-control-panel">
+  <div class="settings-panel-column">
+    <div>
+      <div class="section-kicker">Software & Hardware</div>
+
+      <div class="settings-value-list">
+        <div class="settings-value-row">
+          <span>Project</span>
+          <strong>{{ about.project }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Version</span>
+          <strong>{{ about.version }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Raspberry Pi Model</span>
+          <strong>{{ about.pi_model }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>OS Version</span>
+          <strong>{{ about.os_version }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Python Version</span>
+          <strong>{{ about.python_version }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>FastAPI Version</span>
+          <strong>{{ about.fastapi_version }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Git Commit</span>
+          <strong>{{ about.git_commit }}</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Build Status</span>
+          <strong><i class="status-dot good-dot"></i>{{ about.build_status }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block tech_nav %}
+<nav class="tech-nav">
+  <a class="nav-button" href="/settings">← Settings</a>
+  <a class="nav-button" href="/dashboard">Dashboard</a>
+  <a class="nav-button" href="/diagnostics">Diagnostics</a>
+</nav>
+{% endblock %}

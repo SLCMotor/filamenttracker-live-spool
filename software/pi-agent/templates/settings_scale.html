@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Scale Settings{% endblock %}
+{% block screen_class %}settings-screen{% endblock %}
+{% block main_class %}settings-section-main{% endblock %}
+{% block header_title %}Scale{% endblock %}
+{% block header_subtitle %}Calibration and weight hardware{% endblock %}
+
+{% block content %}
+<section class="settings-section-card settings-control-panel compact-control-panel">
+  <div class="settings-panel-column">
+    <div>
+      <div class="section-kicker">Scale</div>
+
+      <div class="settings-value-list">
+        <div class="settings-value-row">
+          <span>Status</span>
+          <strong id="scaleStatus"><i class="status-dot"></i>Checking</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Live Weight</span>
+          <strong id="liveWeight">-- g</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>HX711</span>
+          <strong id="hx711Status">Checking</strong>
+        </div>
+
+        <div class="settings-value-row">
+          <span>Calibration</span>
+          <strong id="calibrationStatus">Checking</strong>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-kicker">Controls</div>
+
+      <div class="settings-command-list settings-command-list-four">
+        <button id="tareButton" class="settings-command" type="button">
+          <span>Tare Scale</span>
+          <strong>Tare</strong>
+        </button>
+
+        <a class="settings-command" href="/calibration-wizard" style="text-decoration:none;">
+          <span>Calibration</span>
+        </a>
+
+        <button class="settings-command disabled" type="button" disabled>
+          <span>Last Calibrated</span>
+          <strong id="lastCalibration">Saved</strong>
+        </button>
+
+        <button class="settings-command disabled" type="button" disabled>
+          <span>Verification</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const scaleStatus = document.getElementById("scaleStatus");
+  const liveWeight = document.getElementById("liveWeight");
+  const hx711Status = document.getElementById("hx711Status");
+  const calibrationStatus = document.getElementById("calibrationStatus");
+  const lastCalibration = document.getElementById("lastCalibration");
+  const tareButton = document.getElementById("tareButton");
+  const tareButtonLabel = tareButton.querySelector("strong");
+
+  let busy = false;
+
+  function setStatus(label, good) {
+    scaleStatus.innerHTML = `<i class="status-dot ${good ? "good-dot" : ""}"></i>${label}`;
+  }
+
+  async function refreshScaleStatus() {
+    if (busy) return;
+
+    try {
+      const [weightResponse, calibrationResponse] = await Promise.all([
+        fetch("/weight", { cache: "no-store" }),
+        fetch("/calibration/status", { cache: "no-store" })
+      ]);
+
+      const weight = await weightResponse.json();
+      const calibration = await calibrationResponse.json();
+
+      const grams = Number(weight.weightGrams ?? weight.grams ?? 0);
+      const connected = weight.connected !== false;
+
+      setStatus(connected ? "Ready" : "Offline", connected);
+      liveWeight.textContent = `${grams.toFixed(1)} g`;
+      hx711Status.textContent = connected ? "Connected" : "Offline";
+
+      const hasTare = calibration.zeroOffset !== null && calibration.zeroOffset !== undefined;
+      const hasFactor = calibration.scaleFactor !== null && calibration.scaleFactor !== undefined;
+
+      if (hasTare && hasFactor) {
+        calibrationStatus.textContent = "Calibrated";
+        lastCalibration.textContent = "Saved";
+      } else if (hasTare) {
+        calibrationStatus.textContent = "Tared";
+        lastCalibration.textContent = "Partial";
+      } else {
+        calibrationStatus.textContent = "Needed";
+        lastCalibration.textContent = "Never";
+      }
+
+    } catch (error) {
+      setStatus("Error", false);
+      liveWeight.textContent = "-- g";
+      hx711Status.textContent = "Unavailable";
+      calibrationStatus.textContent = "Unknown";
+      lastCalibration.textContent = "Unknown";
+    }
+  }
+
+  async function tareScale() {
+    if (busy) return;
+
+    const confirmed = window.confirm(
+      "Tare Scale?\n\nRemove all weight from the scale before continuing."
+    );
+
+    if (!confirmed) return;
+
+    busy = true;
+    tareButton.disabled = true;
+    tareButtonLabel.textContent = "Taring";
+    setStatus("Taring", false);
+
+    try {
+      const response = await fetch("/calibration/tare", {
+        method: "POST",
+        cache: "no-store"
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus("Tare Complete", true);
+        tareButtonLabel.textContent = "Done";
+      } else {
+        setStatus("Tare Failed", false);
+        tareButtonLabel.textContent = "Failed";
+      }
+
+    } catch {
+      setStatus("Tare Failed", false);
+      tareButtonLabel.textContent = "Failed";
+    }
+
+    setTimeout(() => {
+      busy = false;
+      tareButton.disabled = false;
+      tareButtonLabel.textContent = "Tare";
+      refreshScaleStatus();
+    }, 1800);
+  }
+
+  tareButton.addEventListener("click", tareScale);
+
+  refreshScaleStatus();
+  setInterval(refreshScaleStatus, 2500);
+</script>
+{% endblock %}
+
+{% block tech_nav %}
+<nav class="tech-nav">
+  <a class="nav-button" href="/settings">← Settings</a>
+  <a class="nav-button" href="/dashboard">Dashboard</a>
+  <a class="nav-button" href="/diagnostics">Diagnostics</a>
+</nav>
+{% endblock %}
