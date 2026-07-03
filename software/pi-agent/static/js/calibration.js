@@ -71,11 +71,15 @@ function displayedWeight() {
 }
 
 function isPlatformEmpty() {
-  return latestWeight && latestWeight.connected && latestWeight.stable && Math.abs(displayedWeight()) <= EMPTY_THRESHOLD_GRAMS;
+  if (!latestWeight || !latestWeight.connected) return false;
+  if (!SCALE_IS_MOCK) return Math.abs(displayedWeight()) <= EMPTY_THRESHOLD_GRAMS;
+  return latestWeight.stable && Math.abs(displayedWeight()) <= EMPTY_THRESHOLD_GRAMS;
 }
 
 function isWeightPlaced() {
-  return latestWeight && latestWeight.connected && latestWeight.stable && displayedWeight() >= PLACED_THRESHOLD_GRAMS;
+  if (!latestWeight || !latestWeight.connected) return false;
+  if (!SCALE_IS_MOCK) return displayedWeight() >= PLACED_THRESHOLD_GRAMS;
+  return latestWeight.stable && displayedWeight() >= PLACED_THRESHOLD_GRAMS;
 }
 
 function updateSelectedWeight(value) {
@@ -106,6 +110,13 @@ function updateStepGate() {
   const mode = currentMode();
 
   if (mode === "wait-empty") {
+    if (!SCALE_IS_MOCK) {
+      nextButton.disabled = latestWeight ? !latestWeight.connected : true;
+      setStatus(isPlatformEmpty() ? "Looks empty" : "Confirm empty");
+      showResult("Remove all weight, wait a moment, then tap Platform empty.");
+      return;
+    }
+
     if (isPlatformEmpty()) {
       nextButton.disabled = false;
       setStatus("Platform empty");
@@ -118,6 +129,13 @@ function updateStepGate() {
   }
 
   if (mode === "wait-weight") {
+    if (!SCALE_IS_MOCK) {
+      nextButton.disabled = latestWeight ? !latestWeight.connected : true;
+      setStatus(isWeightPlaced() ? "Weight placed" : "Confirm weight");
+      showResult("Place your known weight, wait a moment, then tap Weight detected.");
+      return;
+    }
+
     if (isWeightPlaced()) {
       nextButton.disabled = false;
       setStatus("Weight detected");
@@ -207,7 +225,12 @@ async function handleNext() {
       setStatus("Taring...");
       const result = await getJson("/calibration/tare", { method: "POST" });
       showResult(result.message || "Scale tared.");
-      await refreshStatus();
+      if (currentStep < steps.length - 1) {
+        currentStep += 1;
+        renderStep();
+        await refreshStatus();
+      }
+      return;
     }
 
     if (step.mode === "known-weight") {
@@ -225,8 +248,13 @@ async function handleNext() {
       });
 
       showResult(result.message || "Calibration saved.");
-      await refreshStatus();
-      updateVerification();
+      if (currentStep < steps.length - 1) {
+        currentStep += 1;
+        renderStep();
+        await refreshStatus();
+        updateVerification();
+      }
+      return;
     }
 
     if (step.finished) {
