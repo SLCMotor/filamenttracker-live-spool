@@ -59,7 +59,7 @@ class NFCService:
                 "data": data,
                 "tag": filament_tracker_tag or self._bambu_tag_summary(bambu_tag),
                 "tagType": self._tag_type(filament_tracker_tag, bambu_tag),
-                "bambu": bambu_tag if bambu_tag and bambu_tag.get("isBambuTag") else None,
+                "bambu": bambu_tag,
                 "error": None,
             }
 
