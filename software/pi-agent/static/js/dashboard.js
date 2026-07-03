@@ -28,6 +28,18 @@ function pickSpoolName(tag) {
   return tag.name || tag.filamentName || tag.spoolName || tag.variant || tag.material || "Tagged spool";
 }
 
+function spoolTitleForData(data, tag, tagType) {
+  if (tag) {
+    return pickSpoolName(tag);
+  }
+
+  if (data.tagPresent && !tagType) {
+    return "No spool data";
+  }
+
+  return "No spool loaded";
+}
+
 function pickField(tag, keys) {
   if (!tag) {
     return "--";
@@ -147,7 +159,11 @@ function subtitleForTag(data, tagType) {
     return "FilamentTracker tag detected";
   }
 
-  return "NFC tag detected";
+  if (!data.data && !data.tag && !data.spool) {
+    return "Blank NFC tag detected";
+  }
+
+  return "Unknown NFC tag";
 }
 
 function updateSpoolDetails(data) {
@@ -155,7 +171,7 @@ function updateSpoolDetails(data) {
   const tagType = data.tagType || data.nfc?.tagType || null;
 
   setText("weight", dashboardWeight(data.weightGrams));
-  setText("spoolName", pickSpoolName(tag));
+  setText("spoolName", spoolTitleForData(data, tag, tagType));
   setText("spoolSubtitle", subtitleForTag(data, tagType));
   const brand = pickField(tag, ["brand", "manufacturer", "vendor"]);
   setText("brandBadge", brand);

@@ -26,7 +26,10 @@
   </section>
 
   <section class="card weight-card">
-    <div class="weight-label">Current Spool Weight</div>
+    <div class="weight-card-header">
+      <div class="weight-label">Current Spool Weight</div>
+      <a class="calibrate-pill" href="/calibration-wizard">Calibrate</a>
+    </div>
 
     <div class="spool-stage">
       <canvas id="spoolGauge" width="390" height="285"></canvas>
@@ -125,7 +128,7 @@
 {% endblock %}
 
 {% block page_scripts %}
-  <script src="/static/js/spool-gauge.js?v=20260703c"></script>
-  <script src="/static/js/status-panel.js?v=20260703c"></script>
-  <script src="/static/js/dashboard.js?v=20260703c"></script>
+  <script src="/static/js/spool-gauge.js?v=20260703d"></script>
+  <script src="/static/js/status-panel.js?v=20260703d"></script>
+  <script src="/static/js/dashboard.js?v=20260703d"></script>
 {% endblock %}
