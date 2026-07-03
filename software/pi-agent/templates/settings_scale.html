@@ -76,6 +76,16 @@
     scaleStatus.innerHTML = `<i class="status-dot ${good ? "good-dot" : ""}"></i>${label}`;
   }
 
+  function displayWeight(value) {
+    const grams = Number(value);
+    if (!Number.isFinite(grams)) {
+      return "-- g";
+    }
+
+    const rounded = Math.abs(grams) < 1 ? 0 : Math.round(grams);
+    return `${rounded} g`;
+  }
+
   async function refreshScaleStatus() {
     if (busy) return;
 
@@ -92,7 +102,7 @@
       const connected = weight.connected !== false;
 
       setStatus(connected ? "Ready" : "Offline", connected);
-      liveWeight.textContent = `${grams.toFixed(1)} g`;
+      liveWeight.textContent = displayWeight(grams);
       hx711Status.textContent = connected ? "Connected" : "Offline";
 
       const hasTare = calibration.zeroOffset !== null && calibration.zeroOffset !== undefined;

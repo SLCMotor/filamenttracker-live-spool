@@ -6,6 +6,16 @@ function valueOrDash(value) {
   return window.LiveSpoolStatusPanel.valueOrDash(value);
 }
 
+function displayWeight(value) {
+  const grams = Number(value);
+  if (!Number.isFinite(grams)) {
+    return "--";
+  }
+
+  const rounded = Math.abs(grams) < 1 ? 0 : Math.round(grams);
+  return `${rounded}`;
+}
+
 function pickSpoolName(spool) {
   if (!spool) {
     return "No spool loaded";
@@ -20,7 +30,7 @@ async function refreshDiagnostics() {
     const data = await response.json();
     const spool = data.spool || data.tag || null;
 
-    setText("weight", valueOrDash(data.weightGrams));
+    setText("weight", displayWeight(data.weightGrams));
     setText("tagId", valueOrDash(data.tagId));
     setText("spoolName", pickSpoolName(spool));
     setText("error", data.error || "None");
