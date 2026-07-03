@@ -57,6 +57,7 @@ def read_bambu_rfid(pn532: Any, uid: bytes) -> dict[str, Any] | None:
     blocks: dict[int, bytes] = {}
     warnings: list[str] = []
     authenticated_sectors = 0
+    authenticated_sector_indexes: list[int] = []
     sector_keys = _derive_bambu_sector_keys(uid)
 
     for sector_index, sector_key in enumerate(sector_keys):
@@ -79,6 +80,7 @@ def read_bambu_rfid(pn532: Any, uid: bytes) -> dict[str, Any] | None:
             continue
 
         authenticated_sectors += 1
+        authenticated_sector_indexes.append(sector_index)
 
         for block_number in range(sector_start_block, trailer_block):
             try:
@@ -101,7 +103,9 @@ def read_bambu_rfid(pn532: Any, uid: bytes) -> dict[str, Any] | None:
                 else "Tag did not authenticate with Bambu-derived MIFARE keys"
             ),
             "authenticatedSectorCount": authenticated_sectors,
+            "authenticatedSectorIndexes": authenticated_sector_indexes,
             "readBlockCount": 0,
+            "rawBlocks": {},
             "parseWarnings": warnings or ["No readable Bambu data blocks were captured."],
         }
 
@@ -109,7 +113,9 @@ def read_bambu_rfid(pn532: Any, uid: bytes) -> dict[str, Any] | None:
     parsed["isBambuTag"] = True
     parsed["uid"] = uid.hex().upper()
     parsed["authenticatedSectorCount"] = authenticated_sectors
+    parsed["authenticatedSectorIndexes"] = authenticated_sector_indexes
     parsed["readBlockCount"] = len(blocks)
+    parsed["rawBlocks"] = _blocks_to_hex(blocks)
     parsed["rawSummary"] = (
         f"UID {uid.hex().upper()} - MIFARE Classic - "
         f"{authenticated_sectors} sectors - {len(blocks)} data blocks"
@@ -186,6 +192,13 @@ def _parse_bambu_blocks(blocks: dict[int, bytes]) -> dict[str, Any]:
         "filamentDiameterMm": _f32_le_at(block5, 8),
         "spoolWidthMm": _bambu_spool_width_mm(spool_width_raw),
         "filamentLengthM": _u16_le_at(block14, 4),
+    }
+
+
+def _blocks_to_hex(blocks: dict[int, bytes]) -> dict[str, str]:
+    return {
+        str(block_number): block.hex().upper()
+        for block_number, block in sorted(blocks.items())
     }
 
 
