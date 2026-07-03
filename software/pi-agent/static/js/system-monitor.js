@@ -16,6 +16,11 @@
     el.classList.add(className);
   }
 
+  function wholeGramWeight(value) {
+    const grams = Number(value);
+    return Number.isFinite(grams) ? `${Math.round(grams)} g` : "-- g";
+  }
+
   async function refreshMonitor() {
     try {
       const response = await fetch("/status", { cache: "no-store" });
@@ -41,8 +46,7 @@
           : "bad"
       );
 
-      els.weight.textContent =
-        `${Number(scale.weightGrams || 0).toFixed(1)} g`;
+      els.weight.textContent = wholeGramWeight(scale.weightGrams);
 
       els.nfc.textContent = nfc.connected
         ? (nfc.tagPresent ? "Tag Present" : "Ready")

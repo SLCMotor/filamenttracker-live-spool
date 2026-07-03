@@ -6,6 +6,19 @@ function setText(id, value) {
   window.LiveSpoolStatusPanel.setText(id, value);
 }
 
+function dashboardWeight(value) {
+  if (value === null || value === undefined || value === "") {
+    return "-- g";
+  }
+
+  const grams = Number(value);
+  if (!Number.isFinite(grams)) {
+    return "-- g";
+  }
+
+  return `${Math.round(grams)} g`;
+}
+
 function pickSpoolName(tag) {
   if (!tag) {
     return "No spool loaded";
@@ -140,7 +153,7 @@ function updateSpoolDetails(data) {
   const tag = data.spool || data.tag || null;
   const tagType = data.tagType || data.nfc?.tagType || null;
 
-  setText("weight", valueOrDash(data.weightGrams));
+  setText("weight", dashboardWeight(data.weightGrams));
   setText("spoolName", pickSpoolName(tag));
   setText("spoolSubtitle", subtitleForTag(data, tagType));
   const brand = pickField(tag, ["brand", "manufacturer", "vendor"]);
