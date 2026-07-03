@@ -345,6 +345,8 @@ class NFCService:
             return {
                 "app": parsed.get("app"),
                 "ver": parsed.get("ver"),
+                "type": parsed.get("type"),
+                "spoolId": parsed.get("spoolId"),
                 "filamentId": parsed.get("filamentId"),
                 "brand": parsed.get("brand"),
                 "material": parsed.get("material"),
