@@ -8,15 +8,16 @@ function setText(id, value) {
 
 function dashboardWeight(value) {
   if (value === null || value === undefined || value === "") {
-    return "-- g";
+    return "--";
   }
 
   const grams = Number(value);
   if (!Number.isFinite(grams)) {
-    return "-- g";
+    return "--";
   }
 
-  return `${Math.round(grams)} g`;
+  const rounded = Math.abs(grams) < 1 ? 0 : Math.round(grams);
+  return `${rounded}`;
 }
 
 function pickSpoolName(tag) {

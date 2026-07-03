@@ -18,7 +18,12 @@
 
   function wholeGramWeight(value) {
     const grams = Number(value);
-    return Number.isFinite(grams) ? `${Math.round(grams)} g` : "-- g";
+    if (!Number.isFinite(grams)) {
+      return "-- g";
+    }
+
+    const rounded = Math.abs(grams) < 1 ? 0 : Math.round(grams);
+    return `${rounded} g`;
   }
 
   async function refreshMonitor() {
