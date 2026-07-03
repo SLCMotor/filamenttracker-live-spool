@@ -1,141 +1,163 @@
-# Live Spool
+# FilamentTracker Live Spool
 
-**An open-source smart filament spool station for Filament Tracker.**
+Live Spool is a Raspberry Pi appliance for the FilamentTracker Android app. It reads NFC/RFID tags, measures spool weight, shows a local touchscreen dashboard, and exposes a local REST API for Android.
 
-Live Spool is a Raspberry Pi powered smart spool station that automatically identifies filament spools using NFC technology and measures spool weight using a precision load cell.
+FilamentTracker Android is the source of truth. Live Spool does not keep its own inventory database. It only reports real-world hardware state and temporarily handles NFC write requests.
 
-Designed to work alongside **Filament Tracker**, Live Spool automates spool identification and weight measurement so filament inventory stays accurate with minimal user interaction.
+## Current Status
 
-Simply place a spool on the station. Live Spool identifies the spool, measures its weight, and provides real-time data to Filament Tracker.
+Live Spool currently supports:
 
----
+- Raspberry Pi 5
+- 7 inch touchscreen dashboard
+- FastAPI local REST API on port `8001`
+- PN532 NFC reader over I2C
+- FilamentTracker JSON NFC tags
+- Bambu Lab RFID tag reading where authentication succeeds
+- NFC tag erase and write tools
+- Android-triggered NFC write sessions
+- HX711 load cell scale backend
+- Mock hardware mode for development
+- Calibration wizard
+- Diagnostics and settings pages
+- System controls for app restart, Pi reboot, and Pi shutdown
 
-## Why Live Spool?
+The software is active development, but the main appliance workflow is working:
 
-Keeping track of remaining filament can be tedious.
+1. Android opens a spool.
+2. Android sends a write request to Live Spool.
+3. Live Spool switches to the NFC writer screen.
+4. The user places a writable NFC tag on the reader.
+5. Live Spool writes, verifies, and returns to the dashboard.
+6. Android receives the result.
 
-Most filament inventory systems require users to manually estimate or enter the amount of filament remaining after every print. While this works, it is easy to forget and becomes less accurate over time.
+## Architecture
 
-Live Spool was created to remove as much manual work as possible.
+```text
+FilamentTracker Android
+  - master database
+  - brands, materials, colors
+  - spool IDs and inventory
+  - remaining grams
+  - user approval and sync decisions
 
-The result is a simple workflow:
+        |
+        | local HTTP API
+        v
 
-1. Place the spool on the Live Spool station.
-2. The spool is automatically identified.
-3. The spool weight is measured.
-4. Filament Tracker receives the updated information.
+FilamentTracker Live Spool
+  - NFC/RFID reader
+  - live weight scale
+  - touchscreen dashboard
+  - temporary NFC write sessions
+  - no local spool database
+```
 
-No manual spool selection.  
-No manual weight entry.  
-Just set the spool down and let Live Spool do the work.
+Live Spool can read the weight snapshot stored on a FilamentTracker NFC tag and compare it with the live scale reading. When the physical weight differs from the tag snapshot, Live Spool displays the difference. Android is still responsible for saving the updated inventory value and rewriting the tag.
 
----
+## Repository Layout
 
-## How It Works
-
-    Filament Spool
-          |
-    NFC Tag + Weight
-          |
-          v
-    Live Spool
-    Raspberry Pi 5
-    - PN532 NFC
-    - HX711 Scale
-    - FastAPI API
-          |
-    Local Network
-          |
-          v
-    Filament Tracker App
-
-Live Spool acts as a dedicated hardware appliance.
-
-It continuously measures spool weight, detects NFC tags, and exposes this information through a local REST API.
-
-Filament Tracker remains the master source of truth for your filament inventory while Live Spool provides accurate, real-world sensor data.
-
----
+```text
+.
+|-- install.sh
+|-- update.sh
+|-- docs/
+|   |-- API.md
+|   |-- ANDROID_INTEGRATION.md
+|   |-- HARDWARE.md
+|   `-- INSTALL.md
+`-- software/pi-agent/
+    |-- app/
+    |-- config/config.yaml
+    |-- static/
+    `-- templates/
+```
 
 ## Quick Start
 
-Clone the repository:
+Clone and install on the Raspberry Pi:
 
-    git clone https://github.com/SLCMotor/filamenttracker-live-spool.git
-    cd filamenttracker-live-spool
+```bash
+git clone https://github.com/SLCMotor/filamenttracker-live-spool.git
+cd filamenttracker-live-spool
+./install.sh
+```
 
-Run the installer:
+Update an installed appliance:
 
-    ./install.sh
+```bash
+cd /home/livespool/filamenttracker-live-spool
+git pull --ff-only
+sudo systemctl restart live-spool-agent
+sudo systemctl restart lightdm
+```
 
-Update later with:
+Check the API:
 
-    ./update.sh
+```bash
+curl http://localhost:8001/status
+curl http://localhost:8001/spool/current
+curl http://localhost:8001/nfc
+```
 
-Default API endpoint:
+## Default URLs
 
-    http://<live-spool-ip>:8001/status
+Replace `<live-spool-ip>` with your Pi address.
 
----
+- Dashboard: `http://<live-spool-ip>:8001/dashboard`
+- Status API: `http://<live-spool-ip>:8001/status`
+- Current spool state: `http://<live-spool-ip>:8001/spool/current`
+- NFC status: `http://<live-spool-ip>:8001/nfc`
+- Calibration wizard: `http://<live-spool-ip>:8001/calibration-wizard`
+- Settings: `http://<live-spool-ip>:8001/settings`
 
-## Features
+## FilamentTracker NFC Payload
 
-### Hardware
+Live Spool reads and writes FilamentTracker JSON payloads. A spool tag can include:
 
-- Raspberry Pi 5
-- Precision load cell
-- HX711 amplifier
-- PN532 NFC reader
-- 7-inch touchscreen
-- Custom 3D printed enclosure
+```json
+{
+  "app": "FT",
+  "ver": 1,
+  "type": "spool",
+  "spoolId": "b85d04fc-bcb0-4d84-8b0f-29ff79d6e9cd",
+  "filamentId": "6666d29d-47f4-4ced-9818-2dc9bbeb1724",
+  "brand": "Creality",
+  "material": "Hyper PLA",
+  "colorName": "Gray",
+  "colorHex": "#808080",
+  "initialGrams": 1000,
+  "remainingGrams": 200.52,
+  "updatedAtEpochMs": 1780000000000
+}
+```
 
-### Software
+The tag is a portable snapshot. Android remains the master database.
 
-- FastAPI REST API
-- Automatic startup with systemd
-- Local network communication
-- GitHub deployment workflow
-- Installer and updater scripts
-- Modular hardware architecture
+## Documentation
 
-### Planned
+- [Installation](docs/INSTALL.md)
+- [Hardware](docs/HARDWARE.md)
+- [API](docs/API.md)
+- [Android integration](docs/ANDROID_INTEGRATION.md)
 
-- Live weight monitoring
-- NFC tag programming
-- Touchscreen dashboard
-- Calibration wizard
-- Device diagnostics
-- Custom boot splash
-- OTA software updates
-- Multi-device support
+## Useful Service Commands
 
----
+```bash
+sudo systemctl status live-spool-agent --no-pager -l
+sudo systemctl restart live-spool-agent
+sudo journalctl -u live-spool-agent -f
+sudo systemctl restart lightdm
+```
 
-## Project Status
+`lightdm` controls the local display session. Restart it when the touchscreen kiosk needs to reload cached dashboard JavaScript.
 
-🚧 **Active Development**
+## Roadmap
 
-The software foundation has been completed and the project is currently transitioning from simulated hardware to real hardware.
+Planned next steps:
 
-### Completed
-
-- Raspberry Pi platform
-- FastAPI REST API
-- Local HTTP communication
-- Automatic startup using systemd
-- GitHub deployment workflow
-- Installer script
-- Update script
-- Mock Scale service
-- Mock NFC service
-
-### Currently In Progress
-
-- HX711 Load Cell integration
-- PN532 NFC integration
-- Touchscreen dashboard
-- Live hardware testing
-
----
-
-*More documentation will be added as the project progresses.*
+- NAU7802 scale backend alongside HX711
+- tighter Android synchronization flows
+- automatic Android prompts when Live Spool detects a changed spool
+- remaining filament calculations using verified live scale readings
+- stronger setup tools for choosing scale backend and GPIO pins
