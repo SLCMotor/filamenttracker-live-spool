@@ -24,8 +24,8 @@
         </div>
 
         <div class="settings-value-row">
-          <span>HX711</span>
-          <strong id="hx711Status">Checking</strong>
+          <span>Backend</span>
+          <strong><span id="scaleBackendName">{{ scale_backend }}</span> · <span id="scaleBackendStatus">Checking</span></strong>
         </div>
 
         <div class="settings-value-row">
@@ -64,7 +64,7 @@
 <script>
   const scaleStatus = document.getElementById("scaleStatus");
   const liveWeight = document.getElementById("liveWeight");
-  const hx711Status = document.getElementById("hx711Status");
+  const scaleBackendStatus = document.getElementById("scaleBackendStatus");
   const calibrationStatus = document.getElementById("calibrationStatus");
   const lastCalibration = document.getElementById("lastCalibration");
   const tareButton = document.getElementById("tareButton");
@@ -103,7 +103,7 @@
 
       setStatus(connected ? "Ready" : "Offline", connected);
       liveWeight.textContent = displayWeight(grams);
-      hx711Status.textContent = connected ? "Connected" : "Offline";
+      scaleBackendStatus.textContent = connected ? "Connected" : "Offline";
 
       const hasTare = calibration.zeroOffset !== null && calibration.zeroOffset !== undefined;
       const hasFactor = calibration.scaleFactor !== null && calibration.scaleFactor !== undefined;
@@ -122,7 +122,7 @@
     } catch (error) {
       setStatus("Error", false);
       liveWeight.textContent = "-- g";
-      hx711Status.textContent = "Unavailable";
+      scaleBackendStatus.textContent = "Unavailable";
       calibrationStatus.textContent = "Unknown";
       lastCalibration.textContent = "Unknown";
     }

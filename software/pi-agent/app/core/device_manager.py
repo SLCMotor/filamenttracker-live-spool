@@ -2,6 +2,7 @@ from app.core.config import config
 from app.devices.hx711_scale import HX711Scale
 from app.devices.mock_nfc import MockNFCDevice
 from app.devices.mock_scale import MockScale
+from app.devices.nau7802_scale import NAU7802Scale
 
 
 class DeviceManager:
@@ -22,6 +23,15 @@ class DeviceManager:
                 clock_pin=config.hx711_clock_pin,
                 gain=config.hx711_gain,
                 samples=config.hx711_samples,
+            )
+        if self.scale_backend == "nau7802":
+            return NAU7802Scale(
+                address=config.nau7802_address,
+                channel=config.nau7802_channel,
+                gain=config.nau7802_gain,
+                poll_rate=config.nau7802_poll_rate,
+                samples=config.nau7802_samples,
+                stable_stddev=config.nau7802_stable_stddev,
             )
 
         raise RuntimeError(

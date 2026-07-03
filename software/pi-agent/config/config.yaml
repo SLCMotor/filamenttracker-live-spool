@@ -24,6 +24,13 @@ scale:
     clock_pin: 6
     gain: 128
     samples: 15
+  nau7802:
+    address: 0x2A
+    channel: 1
+    gain: 128
+    poll_rate: 10
+    samples: 15
+    stable_stddev: 1000
 
 nfc:
   enabled: true

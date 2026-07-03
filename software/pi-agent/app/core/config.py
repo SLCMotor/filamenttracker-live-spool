@@ -9,6 +9,14 @@ CONFIG_PATH = (
 )
 
 
+def _int_config(value, default: int) -> int:
+    if value is None:
+        return default
+    if isinstance(value, str):
+        return int(value, 0)
+    return int(value)
+
+
 class Config:
     def __init__(self):
         with open(CONFIG_PATH, "r", encoding="utf-8") as file:
@@ -72,6 +80,35 @@ class Config:
     @property
     def hx711_samples(self):
         return int(self.data.get("scale", {}).get("hx711", {}).get("samples", 5))
+
+    @property
+    def nau7802_address(self):
+        return _int_config(
+            self.data.get("scale", {}).get("nau7802", {}).get("address"),
+            0x2A,
+        )
+
+    @property
+    def nau7802_channel(self):
+        return int(self.data.get("scale", {}).get("nau7802", {}).get("channel", 1))
+
+    @property
+    def nau7802_gain(self):
+        return int(self.data.get("scale", {}).get("nau7802", {}).get("gain", 128))
+
+    @property
+    def nau7802_poll_rate(self):
+        return int(self.data.get("scale", {}).get("nau7802", {}).get("poll_rate", 10))
+
+    @property
+    def nau7802_samples(self):
+        return int(self.data.get("scale", {}).get("nau7802", {}).get("samples", 15))
+
+    @property
+    def nau7802_stable_stddev(self):
+        return float(
+            self.data.get("scale", {}).get("nau7802", {}).get("stable_stddev", 1000)
+        )
 
     @property
     def nfc_enabled(self):

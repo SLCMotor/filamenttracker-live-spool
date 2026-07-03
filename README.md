@@ -17,6 +17,7 @@ Live Spool currently supports:
 - NFC tag erase and write tools
 - Android-triggered NFC write sessions
 - HX711 load cell scale backend
+- NAU7802 scale backend scaffold for upcoming hardware validation
 - Mock hardware mode for development
 - Calibration wizard
 - Diagnostics and settings pages
@@ -156,7 +157,7 @@ sudo systemctl restart lightdm
 
 Planned next steps:
 
-- NAU7802 scale backend alongside HX711
+- physical NAU7802 validation and tuning
 - tighter Android synchronization flows
 - automatic Android prompts when Live Spool detects a changed spool
 - remaining filament calculations using verified live scale readings

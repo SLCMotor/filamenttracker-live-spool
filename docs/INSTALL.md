@@ -11,7 +11,7 @@ These instructions install the Live Spool Pi agent as a systemd service on Raspb
 - Git
 - Optional but recommended: 7 inch touchscreen kiosk display
 - PN532 NFC reader over I2C
-- HX711 load cell amplifier or mock scale mode for development
+- HX711 load cell amplifier, NAU7802 load cell amplifier, or mock scale mode for development
 
 ## Clone
 
@@ -86,6 +86,13 @@ scale:
     clock_pin: 6
     gain: 128
     samples: 15
+  nau7802:
+    address: 0x2A
+    channel: 1
+    gain: 128
+    poll_rate: 10
+    samples: 15
+    stable_stddev: 1000
 ```
 
 For development without real hardware:
@@ -116,6 +123,30 @@ nfc:
   enabled: true
   mock: false
 ```
+
+For real PN532 NFC and NAU7802 scale hardware:
+
+```yaml
+hardware:
+  device_mode: "real"
+
+scale:
+  backend: "nau7802"
+  mock: false
+  nau7802:
+    address: 0x2A
+    channel: 1
+    gain: 128
+    poll_rate: 10
+    samples: 15
+    stable_stddev: 1000
+
+nfc:
+  enabled: true
+  mock: false
+```
+
+The NAU7802 backend is software-ready and should be validated with the physical board before relying on calibration values.
 
 After changing config:
 

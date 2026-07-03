@@ -10,6 +10,16 @@ Live Spool is designed as a small appliance built around a Raspberry Pi, NFC rea
 - SparkFun HX711 load cell amplifier
 - 5 kg load cell
 
+## Supported Scale Backends
+
+Live Spool currently supports these scale backends:
+
+| Backend | Status | Notes |
+| --- | --- | --- |
+| `hx711` | Tested | SparkFun HX711 on GPIO 5/6 |
+| `nau7802` | Software-ready | Added for upcoming hardware validation |
+| `mock` | Tested | Development and UI testing |
+
 ## PN532 NFC Reader
 
 The current PN532 implementation uses I2C.
@@ -97,12 +107,41 @@ Calibration data is saved under:
 software/pi-agent/data/
 ```
 
-## NAU7802
+## NAU7802 Scale
 
-NAU7802 support is planned. The long-term goal is to let builders choose either:
+NAU7802 support is available in software but still needs physical board validation.
 
-- HX711
-- NAU7802
-- mock scale
+Typical Raspberry Pi I2C wiring:
 
-The Android app should not need to care which scale backend the Pi uses.
+| NAU7802 | Raspberry Pi |
+| --- | --- |
+| VIN / VCC | 3.3V |
+| GND | GND |
+| SDA | GPIO 2 / SDA1 |
+| SCL | GPIO 3 / SCL1 |
+
+Load cell wiring is the same bridge layout as HX711 boards:
+
+| Load cell wire | NAU7802 |
+| --- | --- |
+| Red | E+ |
+| Black | E- |
+| White | A- |
+| Green | A+ |
+
+Corresponding config:
+
+```yaml
+scale:
+  backend: "nau7802"
+  mock: false
+  nau7802:
+    address: 0x2A
+    channel: 1
+    gain: 128
+    poll_rate: 10
+    samples: 15
+    stable_stddev: 1000
+```
+
+The Android app does not need to care which scale backend the Pi uses.

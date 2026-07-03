@@ -295,6 +295,9 @@ def settings_section_page(request: Request, section_key: str):
     if section_key == "display":
         extra["display"] = display_info()
 
+    if section_key == "scale":
+        extra["scale_backend"] = config.scale_backend.upper()
+
     return templates.TemplateResponse(
         request,
         settings_template_for(section_key),
