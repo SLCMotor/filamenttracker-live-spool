@@ -10,6 +10,9 @@ class ScaleService:
     def get_raw_weight(self) -> float:
         return devices.scale.get_raw_weight_grams()
 
+    def get_fresh_raw_weight(self) -> float:
+        return devices.scale.get_fresh_raw_weight_grams()
+
     def get_weight(self) -> ScaleStatus:
         raw_weight = self.get_raw_weight()
 

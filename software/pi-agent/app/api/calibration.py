@@ -13,7 +13,7 @@ class KnownWeightRequest(BaseModel):
 
 @router.post("/tare")
 def tare():
-    raw_weight = scale_service.get_raw_weight()
+    raw_weight = scale_service.get_fresh_raw_weight()
     calibration_service.tare(raw_weight)
 
     return {
@@ -26,7 +26,7 @@ def tare():
 @router.post("/known-weight")
 def known_weight(request: KnownWeightRequest):
     try:
-        raw_weight = scale_service.get_raw_weight()
+        raw_weight = scale_service.get_fresh_raw_weight()
         calibration_service.calibrate(
             raw_weight=raw_weight,
             known_weight=request.knownWeightGrams,

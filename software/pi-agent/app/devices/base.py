@@ -16,6 +16,9 @@ class ScaleDevice(ABC):
     def get_raw_weight_grams(self) -> float:
         pass
 
+    def get_fresh_raw_weight_grams(self) -> float:
+        return self.get_raw_weight_grams()
+
     @abstractmethod
     def set_mock_raw_weight_grams(self, weight_grams: float) -> None:
         pass

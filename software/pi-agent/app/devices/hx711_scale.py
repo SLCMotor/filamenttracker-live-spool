@@ -27,8 +27,11 @@ class HX711Scale(ScaleDevice):
         self._last_read_at = 0.0
         self._last_stable = False
         self._last_stddev = 0.0
+        self._cached_raw = 0.0
+        self._stop_sampler = threading.Event()
         self._gain_pulses = self._resolve_gain_pulses(gain)
         self._init_gpio()
+        self._start_sampler()
 
     def is_connected(self) -> bool:
         return self._connected
@@ -37,13 +40,14 @@ class HX711Scale(ScaleDevice):
         if not self._connected:
             return False
 
-        if time.monotonic() - self._last_read_at < 2.0:
+        with self._lock:
             return self._last_stable
 
-        self.get_raw_weight_grams()
-        return self._last_stable
-
     def get_raw_weight_grams(self) -> float:
+        with self._lock:
+            return self._cached_raw
+
+    def get_fresh_raw_weight_grams(self) -> float:
         with self._lock:
             readings = self._read_samples(self.samples)
             if not readings:
@@ -56,7 +60,8 @@ class HX711Scale(ScaleDevice):
             self._last_stable = self._last_stddev < 1000
             self._last_read_at = time.monotonic()
 
-            return float(self._trimmed_mean(readings))
+            self._cached_raw = float(self._trimmed_mean(readings))
+            return self._cached_raw
 
     def set_mock_raw_weight_grams(self, weight_grams: float) -> None:
         raise RuntimeError("Mock weight is not available for HX711 scale backend.")
@@ -72,6 +77,22 @@ class HX711Scale(ScaleDevice):
         except Exception as exc:
             self._connected = False
             self._last_error = str(exc)
+
+    def _start_sampler(self) -> None:
+        if not self._connected:
+            return
+
+        thread = threading.Thread(
+            target=self._sample_loop,
+            name="hx711-scale-sampler",
+            daemon=True,
+        )
+        thread.start()
+
+    def _sample_loop(self) -> None:
+        while not self._stop_sampler.is_set():
+            self.get_fresh_raw_weight_grams()
+            time.sleep(0.25)
 
     def _read_samples(self, count: int) -> list[int]:
         readings: list[int] = []
