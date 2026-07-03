@@ -16,8 +16,14 @@ hardware:
 
 scale:
   enabled: true
+  backend: "mock"
   mock: true
   unit: "grams"
+  hx711:
+    data_pin: 5
+    clock_pin: 6
+    gain: 128
+    samples: 5
 
 nfc:
   enabled: true

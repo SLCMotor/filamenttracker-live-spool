@@ -5,8 +5,10 @@ annotated-types==0.7.0
 anyio==4.14.1
 click==8.4.2
 fastapi==0.138.1
+gpiozero==2.0.1
 h11==0.16.0
 idna==3.18
+lgpio==0.2.2.0
 pydantic==2.13.4
 pydantic_core==2.46.4
 PyYAML==6.0.3

@@ -51,6 +51,29 @@ class Config:
         return bool(self.data.get("scale", {}).get("enabled", True))
 
     @property
+    def scale_backend(self):
+        scale = self.data.get("scale", {})
+        if bool(scale.get("mock", False)):
+            return "mock"
+        return str(scale.get("backend", "mock")).strip().lower()
+
+    @property
+    def hx711_data_pin(self):
+        return int(self.data.get("scale", {}).get("hx711", {}).get("data_pin", 5))
+
+    @property
+    def hx711_clock_pin(self):
+        return int(self.data.get("scale", {}).get("hx711", {}).get("clock_pin", 6))
+
+    @property
+    def hx711_gain(self):
+        return int(self.data.get("scale", {}).get("hx711", {}).get("gain", 128))
+
+    @property
+    def hx711_samples(self):
+        return int(self.data.get("scale", {}).get("hx711", {}).get("samples", 5))
+
+    @property
     def nfc_enabled(self):
         return bool(self.data.get("nfc", {}).get("enabled", True))
 
