@@ -11,7 +11,7 @@ function pickSpoolName(tag) {
     return "No spool loaded";
   }
 
-  return tag.name || tag.filamentName || tag.spoolName || tag.material || "Tagged spool";
+  return tag.name || tag.filamentName || tag.spoolName || tag.variant || tag.material || "Tagged spool";
 }
 
 function pickField(tag, keys) {
@@ -45,18 +45,32 @@ function setColorSwatch(tag) {
   swatch.title = tag.colorName || tag.colorHex;
 }
 
+function subtitleForTag(data, tagType) {
+  if (!data.tagPresent) {
+    return "Waiting for NFC tag...";
+  }
+
+  if (tagType === "bambu_lab_rfid") {
+    return "Bambu Lab RFID detected";
+  }
+
+  if (tagType === "filamenttracker") {
+    return "FilamentTracker tag detected";
+  }
+
+  return "NFC tag detected";
+}
+
 function updateSpoolDetails(data) {
   const tag = data.spool || data.tag || null;
+  const tagType = data.tagType || data.nfc?.tagType || null;
 
   setText("weight", valueOrDash(data.weightGrams));
   setText("spoolName", pickSpoolName(tag));
-  setText(
-    "spoolSubtitle",
-    data.tagPresent ? "FilamentTracker tag detected" : "Waiting for NFC tag..."
-  );
+  setText("spoolSubtitle", subtitleForTag(data, tagType));
   const brand = pickField(tag, ["brand", "manufacturer", "vendor"]);
   setText("brandBadge", brand);
-  setText("material", pickField(tag, ["material", "filamentType", "type"]));
+  setText("material", pickField(tag, ["material", "variant", "filamentType", "type"]));
   setText("color", pickField(tag, ["colorName", "color", "colorHex"]));
   setText("tagId", valueOrDash(data.tagId));
   setText("changed", data.tagChanged || data.weightChanged ? "Yes" : "No");

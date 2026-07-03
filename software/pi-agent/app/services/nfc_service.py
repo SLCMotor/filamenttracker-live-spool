@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any, Optional
 
+from app.services.bambu_rfid import read_bambu_rfid
+
 try:
     import board
     import busio
@@ -47,13 +49,17 @@ class NFCService:
                 return self._empty_status(connected=True)
 
             data = self._read_ntag_text()
+            filament_tracker_tag = self._parse_filament_tracker_payload(data)
+            bambu_tag = None if data else self._read_bambu_rfid(uid)
 
             return {
                 "connected": True,
                 "tagPresent": True,
                 "tagId": uid.hex().upper(),
                 "data": data,
-                "tag": self._parse_filament_tracker_payload(data),
+                "tag": filament_tracker_tag or self._bambu_tag_summary(bambu_tag),
+                "tagType": self._tag_type(filament_tracker_tag, bambu_tag),
+                "bambu": bambu_tag if bambu_tag and bambu_tag.get("isBambuTag") else None,
                 "error": None,
             }
 
@@ -125,7 +131,59 @@ class NFCService:
             "tagId": None,
             "data": None,
             "tag": None,
+            "tagType": None,
+            "bambu": None,
             "error": error,
+        }
+
+    def _read_bambu_rfid(self, uid: bytes) -> Optional[dict[str, Any]]:
+        try:
+            return read_bambu_rfid(self.pn532, uid)
+        except Exception as exc:
+            return {
+                "isBambuTag": False,
+                "uid": uid.hex().upper(),
+                "rawSummary": "Bambu RFID parse failed",
+                "parseWarnings": [str(exc)],
+            }
+
+    def _tag_type(
+        self,
+        filament_tracker_tag: Optional[dict[str, Any]],
+        bambu_tag: Optional[dict[str, Any]],
+    ) -> Optional[str]:
+        if filament_tracker_tag:
+            return "filamenttracker"
+        if bambu_tag and bambu_tag.get("isBambuTag"):
+            return "bambu_lab_rfid"
+        return None
+
+    def _bambu_tag_summary(
+        self,
+        bambu_tag: Optional[dict[str, Any]],
+    ) -> Optional[dict[str, Any]]:
+        if not bambu_tag or not bambu_tag.get("isBambuTag"):
+            return None
+
+        return {
+            "app": "Bambu Lab",
+            "type": "rfid",
+            "uid": bambu_tag.get("uid"),
+            "brand": "Bambu Lab",
+            "material": bambu_tag.get("material"),
+            "variant": bambu_tag.get("variant"),
+            "filamentCode": bambu_tag.get("filamentCode"),
+            "colorName": bambu_tag.get("colorName"),
+            "colorHex": bambu_tag.get("colorHex"),
+            "hotendMinC": bambu_tag.get("hotendMinC"),
+            "hotendMaxC": bambu_tag.get("hotendMaxC"),
+            "dryingTempC": bambu_tag.get("dryingTempC"),
+            "dryingHours": bambu_tag.get("dryingHours"),
+            "spoolWeightG": bambu_tag.get("spoolWeightG"),
+            "filamentDiameterMm": bambu_tag.get("filamentDiameterMm"),
+            "spoolWidthMm": bambu_tag.get("spoolWidthMm"),
+            "filamentLengthM": bambu_tag.get("filamentLengthM"),
+            "productionDate": bambu_tag.get("productionDate"),
         }
 
     def _parse_filament_tracker_payload(self, data: Optional[str]) -> Optional[dict[str, Any]]:

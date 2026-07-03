@@ -9,6 +9,8 @@ class NfcStatus(BaseModel):
     tagId: str | None = None
     data: str | None = None
     tag: dict[str, Any] | None = None
+    tagType: str | None = None
+    bambu: dict[str, Any] | None = None
     error: str | None = None
 
 
