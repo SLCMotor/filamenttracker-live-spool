@@ -6,6 +6,25 @@
 {% block header_subtitle %}Live Spool{% endblock %}
 
 {% block content %}
+  <section class="nfc-write-overlay hidden" id="nfcWriteOverlay">
+    <div class="nfc-write-panel">
+      <div class="nfc-write-kicker">NFC Tag Writer</div>
+      <div class="nfc-write-title" id="nfcWriteTitle">Ready to Write</div>
+      <div class="nfc-write-message" id="nfcWriteMessage">Place NFC tag on reader</div>
+
+      <div class="nfc-write-target">
+        <div>
+          <span>Tag</span>
+          <strong id="nfcWriteTag">Waiting</strong>
+        </div>
+        <div>
+          <span>Payload</span>
+          <strong id="nfcWritePayload">FilamentTracker spool</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="card weight-card">
     <div class="weight-label">Current Spool Weight</div>
 

@@ -16,3 +16,23 @@ class NfcStatus(BaseModel):
 
 class MockNfcTagRequest(BaseModel):
     tagId: str
+
+
+class NfcWriteRequest(BaseModel):
+    requestId: str
+    payload: dict[str, Any]
+    display: dict[str, Any] | None = None
+    timeoutSeconds: int = 60
+
+
+class NfcWriteStatus(BaseModel):
+    requestId: str | None = None
+    state: str
+    message: str
+    tagId: str | None = None
+    errorCode: str | None = None
+    payload: dict[str, Any] | None = None
+    display: dict[str, Any] | None = None
+    startedAt: str | None = None
+    updatedAt: str | None = None
+    finishedAt: str | None = None

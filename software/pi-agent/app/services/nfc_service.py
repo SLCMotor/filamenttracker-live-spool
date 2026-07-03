@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import threading
-from typing import Any, Optional
+import time
+from typing import Any, Callable, Optional
 
 from app.services.bambu_rfid import read_bambu_rfid
 
@@ -14,6 +15,8 @@ except Exception:
     board = None
     busio = None
     PN532_I2C = None
+
+FILAMENT_TRACKER_MIME_TYPE = b"application/vnd.com.slcmotor.filamenttracker.filament"
 
 
 class NFCService:
@@ -134,6 +137,131 @@ class NFCService:
                 "message": self.error,
             }
 
+    def write_payload(
+        self,
+        payload: dict[str, Any],
+        timeout_seconds: int = 60,
+        progress_callback: Optional[Callable[[str, str, Optional[str]], None]] = None,
+        cancel_callback: Optional[Callable[[], bool]] = None,
+    ) -> dict:
+        with self._io_lock:
+            return self._write_payload_locked(payload, timeout_seconds, progress_callback, cancel_callback)
+
+    def _write_payload_locked(
+        self,
+        payload: dict[str, Any],
+        timeout_seconds: int,
+        progress_callback: Optional[Callable[[str, str, Optional[str]], None]],
+        cancel_callback: Optional[Callable[[], bool]],
+    ) -> dict:
+        if self.pn532 is None:
+            self._connect()
+
+        if self.pn532 is None:
+            return {
+                "success": False,
+                "connected": False,
+                "tagPresent": False,
+                "tagId": None,
+                "message": self.error or "NFC reader unavailable",
+                "errorCode": "reader_unavailable",
+            }
+
+        try:
+            deadline = time.monotonic() + max(1, timeout_seconds)
+            uid = None
+
+            while time.monotonic() < deadline:
+                if cancel_callback and cancel_callback():
+                    return {
+                        "success": False,
+                        "connected": True,
+                        "tagPresent": False,
+                        "tagId": None,
+                        "message": "Write canceled",
+                        "errorCode": "canceled",
+                    }
+
+                uid = self.pn532.read_passive_target(timeout=0.5)
+                if uid is not None:
+                    break
+
+            if uid is None:
+                return {
+                    "success": False,
+                    "connected": True,
+                    "tagPresent": False,
+                    "tagId": None,
+                    "message": "No tag detected",
+                    "errorCode": "timeout",
+                }
+
+            tag_id = uid.hex().upper()
+            if progress_callback:
+                progress_callback("writing", "Writing...", tag_id)
+
+            text_payload = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+            ndef_bytes = self._build_ndef_mime_tlv(text_payload)
+
+            page_count = (len(ndef_bytes) + 3) // 4
+            if page_count > 126:
+                return {
+                    "success": False,
+                    "connected": True,
+                    "tagPresent": True,
+                    "tagId": tag_id,
+                    "message": "NFC payload is too large for this tag.",
+                    "errorCode": "tag_too_small",
+                }
+
+            for page_offset in range(page_count):
+                page = 4 + page_offset
+                chunk = ndef_bytes[page_offset * 4 : page_offset * 4 + 4]
+                self.pn532.ntag2xx_write_block(page, chunk.ljust(4, b"\x00"))
+
+            for page in range(4 + page_count, min(4 + page_count + 8, 130)):
+                try:
+                    self.pn532.ntag2xx_write_block(page, bytes([0x00, 0x00, 0x00, 0x00]))
+                except Exception:
+                    break
+
+            if progress_callback:
+                progress_callback("verifying", "Verifying...", tag_id)
+
+            verified_text = self._read_ntag_text()
+            verified_payload = self._parse_json_payload(verified_text)
+            if verified_payload != payload:
+                return {
+                    "success": False,
+                    "connected": True,
+                    "tagPresent": True,
+                    "tagId": tag_id,
+                    "message": "Tag verification failed.",
+                    "errorCode": "verify_failed",
+                    "verified": verified_payload,
+                }
+
+            return {
+                "success": True,
+                "connected": True,
+                "tagPresent": True,
+                "tagId": tag_id,
+                "message": "Write successful",
+                "errorCode": None,
+            }
+
+        except Exception as exc:
+            self.error = str(exc)
+            self.pn532 = None
+            return {
+                "success": False,
+                "connected": False,
+                "tagPresent": False,
+                "tagId": None,
+                "message": self.error,
+                "errorCode": "write_failed",
+            }
+
     def _empty_status(self, connected: bool, error: Optional[str] = None) -> dict:
         return {
             "connected": connected,
@@ -206,7 +334,7 @@ class NFCService:
             return None
 
         try:
-            parsed = json.loads(data)
+            parsed = self._parse_json_payload(data)
 
             if not isinstance(parsed, dict):
                 return None
@@ -226,6 +354,29 @@ class NFCService:
 
         except Exception:
             return None
+
+    def _parse_json_payload(self, data: Optional[str]) -> Optional[dict[str, Any]]:
+        if not data:
+            return None
+
+        try:
+            parsed = json.loads(data)
+            return parsed if isinstance(parsed, dict) else None
+        except Exception:
+            return None
+
+    def _build_ndef_mime_tlv(self, text: str) -> bytes:
+        payload = text.encode("utf-8")
+        record_type = FILAMENT_TRACKER_MIME_TYPE
+
+        if len(payload) <= 255:
+            record = bytes([0xD2, len(record_type), len(payload)]) + record_type + payload
+        else:
+            record = bytes([0xC2, len(record_type)]) + len(payload).to_bytes(4, "big") + record_type + payload
+
+        if len(record) < 0xFF:
+            return bytes([0x03, len(record)]) + record + bytes([0xFE])
+        return bytes([0x03, 0xFF]) + len(record).to_bytes(2, "big") + record + bytes([0xFE])
 
     def _read_ntag_text(self) -> Optional[str]:
         try:
@@ -328,3 +479,17 @@ def get_nfc() -> dict:
 
 def erase_nfc_tag() -> dict:
     return nfc_service.erase()
+
+
+def write_nfc_payload(
+    payload: dict[str, Any],
+    timeout_seconds: int = 60,
+    progress_callback: Optional[Callable[[str, str, Optional[str]], None]] = None,
+    cancel_callback: Optional[Callable[[], bool]] = None,
+) -> dict:
+    return nfc_service.write_payload(
+        payload=payload,
+        timeout_seconds=timeout_seconds,
+        progress_callback=progress_callback,
+        cancel_callback=cancel_callback,
+    )

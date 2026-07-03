@@ -45,6 +45,81 @@ function setColorSwatch(tag) {
   swatch.title = tag.colorName || tag.colorHex;
 }
 
+function writeTitleForState(state) {
+  switch (state) {
+    case "ready":
+      return "Ready to Write";
+    case "writing":
+      return "Writing...";
+    case "verifying":
+      return "Verifying...";
+    case "succeeded":
+      return "Write Successful";
+    case "timed_out":
+      return "Write Timed Out";
+    case "canceled":
+      return "Write Canceled";
+    case "failed":
+      return "Write Failed";
+    default:
+      return "NFC Writer";
+  }
+}
+
+function writeMessageForState(status) {
+  if (!status) {
+    return "Place NFC tag on reader";
+  }
+
+  if (status.state === "ready") {
+    return "Place NFC tag on reader";
+  }
+
+  return status.message || "Place NFC tag on reader";
+}
+
+function writePayloadLabel(status) {
+  const payload = status?.payload || {};
+  const display = status?.display || {};
+  const parts = [
+    payload.brand,
+    payload.material,
+    payload.colorName,
+    display.locationName
+  ].filter((value) => value !== null && value !== undefined && value !== "");
+
+  return parts.length ? parts.join(" · ") : "FilamentTracker spool";
+}
+
+function updateNfcWriteOverlay(status) {
+  const overlay = document.getElementById("nfcWriteOverlay");
+  if (!overlay) {
+    return;
+  }
+
+  const state = status?.state || "idle";
+  if (state === "idle" || state === "not_found") {
+    overlay.classList.add("hidden");
+    return;
+  }
+
+  overlay.className = `nfc-write-overlay ${state}`;
+  setText("nfcWriteTitle", writeTitleForState(state));
+  setText("nfcWriteMessage", writeMessageForState(status));
+  setText("nfcWriteTag", status.tagId || "Waiting");
+  setText("nfcWritePayload", writePayloadLabel(status));
+}
+
+async function refreshNfcWriteStatus() {
+  try {
+    const response = await fetch("/nfc/write/current", { cache: "no-store" });
+    const status = await response.json();
+    updateNfcWriteOverlay(status);
+  } catch (error) {
+    updateNfcWriteOverlay({ state: "idle" });
+  }
+}
+
 function subtitleForTag(data, tagType) {
   if (!data.tagPresent) {
     return "Waiting for NFC tag...";
@@ -80,6 +155,8 @@ function updateSpoolDetails(data) {
 
 async function refreshDashboard() {
   try {
+    await refreshNfcWriteStatus();
+
     const response = await fetch("/spool/current", { cache: "no-store" });
     const data = await response.json();
 
