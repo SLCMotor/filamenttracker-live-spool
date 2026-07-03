@@ -110,11 +110,24 @@ function writeMessageForState(status) {
     return "Place NFC tag on reader";
   }
 
-  if (status.state === "ready") {
-    return "Place NFC tag on reader";
+  switch (status.state) {
+    case "ready":
+      return "Place NFC tag on reader";
+    case "writing":
+      return "Keep tag still on reader";
+    case "verifying":
+      return "Reading tag back";
+    case "succeeded":
+      return "Returning to dashboard";
+    case "timed_out":
+      return "No tag was written";
+    case "canceled":
+      return "Write request canceled";
+    case "failed":
+      return status.message || "Try again with a writable tag";
+    default:
+      return status.message || "Place NFC tag on reader";
   }
-
-  return status.message || "Place NFC tag on reader";
 }
 
 function writePayloadLabel(status) {
