@@ -17,7 +17,7 @@ Live Spool currently supports these scale backends:
 | Backend | Status | Notes |
 | --- | --- | --- |
 | `hx711` | Tested | SparkFun HX711 on GPIO 5/6 |
-| `nau7802` | Software-ready | Added for upcoming hardware validation |
+| `nau7802` | Implemented | NAU7802 over I2C at default address `0x2A` |
 | `mock` | Tested | Development and UI testing |
 
 ## PN532 NFC Reader
@@ -109,7 +109,8 @@ software/pi-agent/data/
 
 ## NAU7802 Scale
 
-NAU7802 support is available in software but still needs physical board validation.
+NAU7802 support is implemented with direct I2C register access. Your `i2cdetect`
+scan should show the NAU7802 at address `0x2A`.
 
 Typical Raspberry Pi I2C wiring:
 

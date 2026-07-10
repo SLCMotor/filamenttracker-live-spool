@@ -146,7 +146,7 @@ nfc:
   mock: false
 ```
 
-The NAU7802 backend is software-ready and should be validated with the physical board before relying on calibration values.
+After changing to the NAU7802 backend, restart the service and run the calibration wizard before relying on scale values.
 
 After changing config:
 
