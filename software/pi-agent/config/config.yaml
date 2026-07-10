@@ -12,12 +12,12 @@ device:
   location: "Workshop"
 
 hardware:
-  device_mode: "mock"
+  device_mode: "real"
 
 scale:
   enabled: true
-  backend: "mock"
-  mock: true
+  backend: "nau7802"
+  mock: false
   unit: "grams"
   hx711:
     data_pin: 5
@@ -34,4 +34,4 @@ scale:
 
 nfc:
   enabled: true
-  mock: true
+  mock: false

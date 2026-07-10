@@ -3,6 +3,7 @@ from app.devices.hx711_scale import HX711Scale
 from app.devices.mock_nfc import MockNFCDevice
 from app.devices.mock_scale import MockScale
 from app.devices.nau7802_scale import NAU7802Scale
+from app.devices.pn532_nfc import PN532NFCDevice
 
 
 class DeviceManager:
@@ -39,8 +40,10 @@ class DeviceManager:
         )
 
     def _load_nfc(self):
-        if self.device_mode == "mock":
+        if config.nfc_mock or self.device_mode == "mock":
             return MockNFCDevice()
+        if self.device_mode == "real":
+            return PN532NFCDevice()
 
         raise RuntimeError(
             f"Unsupported NFC device mode: {self.device_mode}"

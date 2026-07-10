@@ -114,5 +114,9 @@ class Config:
     def nfc_enabled(self):
         return bool(self.data.get("nfc", {}).get("enabled", True))
 
+    @property
+    def nfc_mock(self):
+        return bool(self.data.get("nfc", {}).get("mock", False))
+
 
 config = Config()
