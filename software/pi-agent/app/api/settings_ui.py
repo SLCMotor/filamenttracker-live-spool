@@ -11,7 +11,8 @@ from fastapi.templating import Jinja2Templates
 from app.core.config import config
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+APP_ROOT = Path(__file__).resolve().parents[2]
+templates = Jinja2Templates(directory=str(APP_ROOT / "templates"))
 
 
 def read_file(path: str, fallback: str = "Unknown") -> str:
@@ -257,7 +258,7 @@ def template_context(request: Request, extra: dict | None = None):
 
 
 def settings_template_for(section_key: str) -> str:
-    section_template = Path("templates") / f"settings_{section_key}.html"
+    section_template = APP_ROOT / "templates" / f"settings_{section_key}.html"
 
     if section_template.exists():
         return f"settings_{section_key}.html"

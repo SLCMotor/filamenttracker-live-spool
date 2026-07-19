@@ -8,7 +8,8 @@ Type=simple
 User=@APP_USER@
 Group=@APP_GROUP@
 @SUPPLEMENTARY_GROUPS@
-WorkingDirectory=@PI_AGENT_DIR@
+WorkingDirectory=/var/lib/filamenttracker-live-spool
+Environment=PYTHONPATH=@PI_AGENT_DIR@
 EnvironmentFile=-/etc/filamenttracker-live-spool/live-spool.env
 ExecStart=@VENV_DIR@/bin/python -m app.run
 Restart=on-failure
