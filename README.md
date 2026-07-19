@@ -1,164 +1,197 @@
 # FilamentTracker Live Spool
 
-Live Spool is a Raspberry Pi appliance for the FilamentTracker Android app. It reads NFC/RFID tags, measures spool weight, shows a local touchscreen dashboard, and exposes a local REST API for Android.
+FilamentTracker Live Spool turns a Raspberry Pi into a local-network spool scale,
+NFC/RFID station, touchscreen dashboard, and hardware API for FilamentTracker.
+The Android application and FilamentTracker Server remain the inventory systems
+of record; Live Spool stores no second spool inventory database.
 
-FilamentTracker Android is the source of truth. Live Spool does not keep its own inventory database. It only reports real-world hardware state and temporarily handles NFC write requests.
+> [!IMPORTANT]
+> Live Spool is designed for a trusted home or workshop LAN. It is not hardened
+> for direct Internet exposure. Do not port-forward its API.
 
-## Current Status
+## Features
 
-Live Spool currently supports:
+- live spool weight with NAU7802, HX711, or mock scale backends
+- PN532 NFC read, verified write, and logical erase operations over I2C
+- FilamentTracker JSON/NDEF spool tags and Bambu Lab RFID interoperability
+- temporary Android-triggered NFC write sessions
+- combined current-spool state without a local inventory database
+- touchscreen dashboard, calibration wizard, diagnostics, and settings
+- REST API for FilamentTracker Android and FilamentTracker Server
+- external configuration and calibration storage designed to survive updates
+- idempotent installer, preservation-first updater, and safe uninstaller
 
-- Raspberry Pi 5
-- 7 inch touchscreen dashboard
-- FastAPI local REST API on port `8001`
-- PN532 NFC reader over I2C
-- FilamentTracker JSON NFC tags
-- Bambu Lab RFID tag reading where authentication succeeds
-- NFC tag erase and write tools
-- Android-triggered NFC write sessions
-- HX711 load cell scale backend
-- NAU7802 scale backend over I2C
-- Mock hardware mode for development
-- Calibration wizard
-- Diagnostics and settings pages
-- System controls for app restart, Pi reboot, and Pi shutdown
+## Hardware
 
-The software is active development, but the main appliance workflow is working:
+Tested appliance:
 
-1. Android opens a spool.
-2. Android sends a write request to Live Spool.
-3. Live Spool switches to the NFC writer screen.
-4. The user places a writable NFC tag on the reader.
-5. Live Spool writes, verifies, and returns to the dashboard.
-6. Android receives the result.
+- Raspberry Pi 5 with 64-bit Raspberry Pi OS
+- ELECROW 7-inch 1024×600 touchscreen
+- PN532 NFC reader in I2C mode at `0x24`
+- NAU7802 load-cell ADC at `0x2A`
+- 5 kg four-wire load cell
 
-## Architecture
+Also supported in software:
 
-```text
-FilamentTracker Android
-  - master database
-  - brands, materials, colors
-  - spool IDs and inventory
-  - remaining grams
-  - user approval and sync decisions
+- HX711 load-cell ADC using BCM GPIO pins (defaults: data 5, clock 6)
+- mock hardware on Linux development systems
 
-        |
-        | local HTTP API
-        v
+Raspberry Pi 5 is the reference and tested platform. Raspberry Pi 4 with a
+64-bit Raspberry Pi OS is expected to work but has not yet received the same
+hardware validation. See [Hardware](docs/HARDWARE.md) before wiring anything.
 
-FilamentTracker Live Spool
-  - NFC/RFID reader
-  - live weight scale
-  - touchscreen dashboard
-  - temporary NFC write sessions
-  - no local spool database
-```
+## Wiring summary
 
-Live Spool can read the weight snapshot stored on a FilamentTracker NFC tag and compare it with the live scale reading. When the physical weight differs from the tag snapshot, Live Spool displays the difference. Android is still responsible for saving the updated inventory value and rewriting the tag.
+PN532 and NAU7802 intentionally share I2C bus 1:
 
-## Repository Layout
+| Signal | Raspberry Pi | PN532 | NAU7802 |
+| --- | --- | --- | --- |
+| 3.3 V | Pin 1 or 17 | VCC/VIN* | VCC/VIN* |
+| Ground | Any GND | GND | GND |
+| SDA1 | GPIO 2 / pin 3 | SDA | SDA |
+| SCL1 | GPIO 3 / pin 5 | SCL | SCL |
 
-```text
-.
-|-- install.sh
-|-- update.sh
-|-- docs/
-|   |-- API.md
-|   |-- ANDROID_INTEGRATION.md
-|   |-- HARDWARE.md
-|   `-- INSTALL.md
-`-- software/pi-agent/
-    |-- app/
-    |-- config/config.yaml
-    |-- static/
-    `-- templates/
-```
+\* Confirm the voltage requirement printed on your exact breakout board.
 
-## Quick Start
+Default HX711 wiring:
 
-Clone and install on the Raspberry Pi:
+| HX711 | Raspberry Pi |
+| --- | --- |
+| VCC | 3.3 V |
+| GND | Ground |
+| DAT / DOUT | GPIO 5 / pin 29 |
+| CLK / SCK | GPIO 6 / pin 31 |
+
+Load-cell wire colors are not universal. For the tested cell, red is `E+`, black
+is `E-`, green is `A+`, and white is `A-`. Verify your load-cell datasheet.
+
+## Install
 
 ```bash
 git clone https://github.com/SLCMotor/filamenttracker-live-spool.git
 cd filamenttracker-live-spool
-./install.sh
+sudo ./install.sh
 ```
 
-Update an installed appliance:
+The installer checks the platform, installs system packages, enables I2C, creates
+a virtual environment, installs the service and optional kiosk autostart, and
+verifies the local API. Existing configuration and calibration are preserved.
+New installs use safe mock-hardware defaults; select `nau7802` or `hx711` in:
+
+```text
+/etc/filamenttracker-live-spool/config.yaml
+```
+
+Then restart:
 
 ```bash
-cd /home/livespool/filamenttracker-live-spool
-git pull --ff-only
 sudo systemctl restart live-spool-agent
-sudo systemctl restart lightdm
+curl --fail http://127.0.0.1:8001/status
 ```
 
-Check the API:
+Detailed instructions: [Installation](docs/INSTALL.md).
+
+## Configuration
+
+Configuration precedence is environment variables, external YAML, then the
+repository development defaults. Appliance files are:
+
+```text
+/etc/filamenttracker-live-spool/config.yaml
+/etc/filamenttracker-live-spool/live-spool.env
+/var/lib/filamenttracker-live-spool/calibration.json
+```
+
+Configurable values include device name/location, API host and port, log level,
+runtime directory, scale backend and GPIO pins, I2C addresses, development mode,
+mock hardware, and local system-control availability. See
+[Configuration](docs/CONFIGURATION.md).
+
+## REST API
+
+Common endpoints:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/health` | process health without requiring hardware |
+| GET | `/status` | combined appliance and hardware status |
+| GET | `/weight` | current scale reading |
+| GET | `/nfc` | NFC reader and current tag state |
+| GET | `/spool/current` | combined live scale and tag snapshot |
+| POST | `/nfc/write` | start a temporary verified write session |
+| POST | `/nfc/erase` | logically erase a writable NTAG |
+| GET/POST | `/calibration/*` | inspect or perform calibration |
+
+Mock routes exist only in development/mock mode. System power routes are disabled
+by default. The API intentionally has no cloud discovery or remote-access layer.
+See the complete [REST API](docs/API.md) and
+[Android integration](docs/ANDROID_INTEGRATION.md).
+
+## Calibration
+
+Open `http://<live-spool-host>:8001/calibration-wizard`, remove all weight, tare,
+place an accurately known weight, enter its mass, and verify the result. The
+calibration file is written atomically under `/var/lib` and is not overwritten
+by installation or updates.
+
+## Screenshots
+
+Release screenshots are not available yet. Contributions of publication-safe
+photos or screenshots showing the dashboard, calibration flow, and completed
+hardware are welcome. Do not include Wi-Fi credentials, private addresses, NFC
+UIDs, or personal inventory data in submitted images.
+
+## Updating
 
 ```bash
-curl http://localhost:8001/status
-curl http://localhost:8001/spool/current
-curl http://localhost:8001/nfc
+cd filamenttracker-live-spool
+sudo ./scripts/update.sh
 ```
 
-## Default URLs
+The updater requires a clean checkout, creates a timestamped configuration and
+calibration backup, performs a fast-forward-only pull, updates dependencies,
+restarts the service, and verifies health. It never pushes changes.
 
-Replace `<live-spool-ip>` with your Pi address.
+## Troubleshooting
 
-- Dashboard: `http://<live-spool-ip>:8001/dashboard`
-- Status API: `http://<live-spool-ip>:8001/status`
-- Current spool state: `http://<live-spool-ip>:8001/spool/current`
-- NFC status: `http://<live-spool-ip>:8001/nfc`
-- Calibration wizard: `http://<live-spool-ip>:8001/calibration-wizard`
-- Settings: `http://<live-spool-ip>:8001/settings`
-
-## FilamentTracker NFC Payload
-
-Live Spool reads and writes FilamentTracker JSON payloads. A spool tag can include:
-
-```json
-{
-  "app": "FT",
-  "ver": 1,
-  "type": "spool",
-  "spoolId": "b85d04fc-bcb0-4d84-8b0f-29ff79d6e9cd",
-  "filamentId": "6666d29d-47f4-4ced-9818-2dc9bbeb1724",
-  "brand": "Creality",
-  "material": "Hyper PLA",
-  "colorName": "Gray",
-  "colorHex": "#808080",
-  "initialGrams": 1000,
-  "remainingGrams": 200.52,
-  "updatedAtEpochMs": 1780000000000
-}
-```
-
-The tag is a portable snapshot. Android remains the master database.
-
-## Documentation
-
-- [Installation](docs/INSTALL.md)
-- [Hardware](docs/HARDWARE.md)
-- [API](docs/API.md)
-- [Android integration](docs/ANDROID_INTEGRATION.md)
-
-## Useful Service Commands
+Start with:
 
 ```bash
 sudo systemctl status live-spool-agent --no-pager -l
-sudo systemctl restart live-spool-agent
-sudo journalctl -u live-spool-agent -f
-sudo systemctl restart lightdm
+sudo journalctl -u live-spool-agent -n 100 --no-pager
+i2cdetect -y 1
+curl --fail http://127.0.0.1:8001/health
 ```
 
-`lightdm` controls the local display session. Restart it when the touchscreen kiosk needs to reload cached dashboard JavaScript.
+Expected I2C addresses are `24` for PN532 and `2a` for NAU7802. See
+[Troubleshooting](docs/TROUBLESHOOTING.md).
+
+## Known limitations
+
+- Raspberry Pi 5 is the only fully validated Pi model today.
+- The API assumes a trusted LAN and must not be exposed directly to the Internet.
+- Bambu RFID support is read-only and depends on successful tag authentication.
+- NFC writing targets compatible NTAG/NDEF tags; tag capacity varies.
+- Kiosk behavior varies among Raspberry Pi OS desktop/display-server releases.
+- Scale accuracy depends heavily on mechanical construction and calibration.
 
 ## Roadmap
 
-Planned next steps:
+- validate Raspberry Pi 4 and additional displays
+- improve guided hardware selection during installation
+- add authentication for optional administrative operations
+- expand Android and FilamentTracker Server integration tests
+- publish enclosure/build plans and real appliance photographs
+- add upgrade rollback assistance and packaged releases
 
-- continued NAU7802 calibration tuning with real spools
-- tighter Android synchronization flows
-- automatic Android prompts when Live Spool detects a changed spool
-- remaining filament calculations using verified live scale readings
-- stronger setup tools for choosing scale backend and GPIO pins
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Please report security issues privately
+rather than opening a public issue.
+
+## License
+
+MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+FilamentTracker and Bambu Lab names belong to their respective owners; this
+project is an independent interoperability tool.

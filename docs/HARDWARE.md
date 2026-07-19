@@ -17,7 +17,7 @@ Live Spool currently supports these scale backends:
 | Backend | Status | Notes |
 | --- | --- | --- |
 | `hx711` | Tested | SparkFun HX711 on GPIO 5/6 |
-| `nau7802` | Implemented | NAU7802 over I2C at default address `0x2A` |
+| `nau7802` | Tested on Raspberry Pi 5 | NAU7802 over I2C at default address `0x2A` |
 | `mock` | Tested | Development and UI testing |
 
 ## PN532 NFC Reader
@@ -101,10 +101,10 @@ Recommended flow:
 5. Save calibration.
 6. Verify with the same known weight.
 
-Calibration data is saved under:
+Calibration data is saved on installed appliances under:
 
 ```text
-software/pi-agent/data/
+/var/lib/filamenttracker-live-spool/calibration.json
 ```
 
 ## NAU7802 Scale

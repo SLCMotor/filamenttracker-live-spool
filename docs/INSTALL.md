@@ -1,203 +1,67 @@
 # Installation
 
-These instructions install the Live Spool Pi agent as a systemd service on Raspberry Pi OS.
-
 ## Requirements
 
-- Raspberry Pi 5
-- Raspberry Pi OS
-- Network access to GitHub
-- Python 3
-- Git
-- Optional but recommended: 7 inch touchscreen kiosk display
-- PN532 NFC reader over I2C
-- HX711 load cell amplifier, NAU7802 load cell amplifier, or mock scale mode for development
-
-## Clone
-
-```bash
-cd /home/livespool
-git clone https://github.com/SLCMotor/filamenttracker-live-spool.git
-cd filamenttracker-live-spool
-```
+- Raspberry Pi 5 (tested) with 64-bit Raspberry Pi OS
+- Raspberry Pi 4 64-bit is provisional/community-supported
+- network access during installation
+- optional Raspberry Pi OS desktop for touchscreen kiosk mode
+- supported NFC/scale hardware, or mock mode
 
 ## Install
 
 ```bash
-./install.sh
+git clone https://github.com/SLCMotor/filamenttracker-live-spool.git
+cd filamenttracker-live-spool
+sudo ./install.sh
 ```
 
-The installer:
+Use `--no-kiosk` for a headless installation. On an unsupported development
+machine, `--allow-unsupported` bypasses only the platform check.
 
-- installs system packages
-- creates `software/pi-agent/.venv`
-- installs Python dependencies
-- creates the `live-spool-agent` systemd service
-- starts the API on port `8001`
+The installer is safe to rerun. It preserves existing external configuration and
+calibration. A legacy calibration inside `software/pi-agent/data` is migrated
+only when the external destination does not already exist.
 
-## Verify
+## Select hardware
+
+Edit `/etc/filamenttracker-live-spool/config.yaml`. For production NAU7802 and
+PN532 operation, change the hardware mode/backend and both mock flags:
+
+```yaml
+hardware:
+  device_mode: real
+scale:
+  backend: nau7802
+  mock: false
+nfc:
+  mock: false
+```
+
+Restart and verify:
 
 ```bash
-sudo systemctl status live-spool-agent --no-pager -l
-curl -s http://localhost:8001/status
-curl -s http://localhost:8001/spool/current
-curl -s http://localhost:8001/nfc
+sudo systemctl restart live-spool-agent
+curl --fail http://127.0.0.1:8001/health
+curl --fail http://127.0.0.1:8001/status
+i2cdetect -y 1
 ```
-
-The service should be active and the API should return JSON.
 
 ## Update
 
-For a normal update:
+```bash
+sudo ./scripts/update.sh
+```
+
+The checkout must be clean. Backups are stored below
+`/var/backups/filamenttracker-live-spool/`.
+
+## Uninstall
 
 ```bash
-cd /home/livespool/filamenttracker-live-spool
-git pull --ff-only
-sudo systemctl restart live-spool-agent
-sudo systemctl restart lightdm
+sudo ./uninstall.sh
 ```
 
-Restarting `lightdm` refreshes the local touchscreen browser. The screen may briefly go blank.
-
-The repo also includes an updater:
-
-```bash
-./update.sh
-```
-
-## Configuration
-
-Main config file:
-
-```text
-software/pi-agent/config/config.yaml
-```
-
-Common scale options:
-
-```yaml
-scale:
-  enabled: true
-  backend: "hx711"
-  mock: false
-  unit: "grams"
-  hx711:
-    data_pin: 5
-    clock_pin: 6
-    gain: 128
-    samples: 15
-  nau7802:
-    address: 0x2A
-    channel: 1
-    gain: 128
-    poll_rate: 10
-    samples: 15
-    stable_stddev: 1000
-```
-
-For development without real hardware:
-
-```yaml
-hardware:
-  device_mode: "mock"
-
-scale:
-  backend: "mock"
-  mock: true
-
-nfc:
-  mock: true
-```
-
-For real PN532 NFC and HX711 scale hardware:
-
-```yaml
-hardware:
-  device_mode: "real"
-
-scale:
-  backend: "hx711"
-  mock: false
-
-nfc:
-  enabled: true
-  mock: false
-```
-
-For real PN532 NFC and NAU7802 scale hardware:
-
-```yaml
-hardware:
-  device_mode: "real"
-
-scale:
-  backend: "nau7802"
-  mock: false
-  nau7802:
-    address: 0x2A
-    channel: 1
-    gain: 128
-    poll_rate: 10
-    samples: 15
-    stable_stddev: 1000
-
-nfc:
-  enabled: true
-  mock: false
-```
-
-After changing to the NAU7802 backend, restart the service and run the calibration wizard before relying on scale values.
-
-After changing config:
-
-```bash
-sudo systemctl restart live-spool-agent
-```
-
-## Android Setup
-
-In FilamentTracker Android:
-
-1. Open Settings.
-2. Enable Live Spool integration.
-3. Enter the Pi API URL, for example:
-
-```text
-http://<live-spool-ip>:8001
-```
-
-4. Tap Test Connection.
-
-If the test succeeds, Android can read Live Spool weight and send NFC write jobs to the appliance.
-
-## Troubleshooting
-
-Service logs:
-
-```bash
-sudo journalctl -u live-spool-agent -f
-```
-
-Restart the API:
-
-```bash
-sudo systemctl restart live-spool-agent
-```
-
-Restart the display:
-
-```bash
-sudo systemctl restart lightdm
-```
-
-Check port 8001:
-
-```bash
-sudo ss -ltnp | grep ':8001'
-```
-
-Check the running process:
-
-```bash
-ps -ef | grep '[u]vicorn'
-```
+Configuration and runtime/calibration data are preserved by default. Destructive
+removal requires explicit `--remove-config` or `--remove-data` flags and a typed
+confirmation (or `--yes` for deliberate automation).

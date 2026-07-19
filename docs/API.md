@@ -271,3 +271,19 @@ Known weight request:
 /settings/about
 /calibration-wizard
 ```
+
+## Process Health
+
+```http
+GET /health
+```
+
+Returns application process health and version without requiring the scale or NFC
+reader to be connected. Use `/status` when hardware state is also required.
+
+## Local-network security
+
+The API is intended only for a trusted LAN and must not be exposed directly to
+the Internet. Mock endpoints are registered only in development/mock mode.
+`/system/*` routes are disabled unless `system_controls_enabled` is deliberately
+set. Enabling those routes does not add authentication or Internet hardening.
