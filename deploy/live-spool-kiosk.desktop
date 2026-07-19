@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=FilamentTracker Live Spool
+Comment=Open the local Live Spool touchscreen dashboard
+Exec=@KIOSK_SCRIPT@
+Terminal=false
+X-GNOME-Autostart-enabled=true

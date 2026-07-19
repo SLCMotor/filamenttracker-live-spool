@@ -1,0 +1,25 @@
+[Unit]
+Description=FilamentTracker Live Spool appliance agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@APP_USER@
+Group=@APP_GROUP@
+@SUPPLEMENTARY_GROUPS@
+WorkingDirectory=@PI_AGENT_DIR@
+EnvironmentFile=-/etc/filamenttracker-live-spool/live-spool.env
+ExecStart=@VENV_DIR@/bin/python -m app.run
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=20s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=/var/lib/filamenttracker-live-spool
+
+[Install]
+WantedBy=multi-user.target

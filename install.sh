@@ -1,89 +1,146 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="FilamentTracker Live Spool"
 SERVICE_NAME="live-spool-agent"
-APP_PORT="8001"
-APP_USER="${SUDO_USER:-$(whoami)}"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PI_AGENT_DIR="$APP_DIR/software/pi-agent"
 VENV_DIR="$PI_AGENT_DIR/.venv"
+CONFIG_DIR="/etc/filamenttracker-live-spool"
+DATA_DIR="/var/lib/filamenttracker-live-spool"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+APP_USER="${SUDO_USER:-}"
+ALLOW_UNSUPPORTED=false
+INSTALL_KIOSK=true
 
-echo "======================================"
-echo " $APP_NAME Installer"
-echo "======================================"
-echo
+usage() {
+  echo "Usage: sudo ./install.sh [--user USER] [--no-kiosk] [--allow-unsupported]"
+}
 
-if [[ ! -d "$PI_AGENT_DIR/app" ]]; then
-  echo "ERROR: Could not find pi-agent app directory:"
-  echo "$PI_AGENT_DIR/app"
+while (($#)); do
+  case "$1" in
+    --user) APP_USER="${2:?--user requires a username}"; shift 2 ;;
+    --no-kiosk) INSTALL_KIOSK=false; shift ;;
+    --allow-unsupported) ALLOW_UNSUPPORTED=true; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ $EUID -ne 0 ]]; then
+  echo "Run this installer with sudo: sudo ./install.sh" >&2
+  exit 1
+fi
+if [[ -z "$APP_USER" || "$APP_USER" == root ]] || ! id "$APP_USER" >/dev/null 2>&1; then
+  echo "Could not determine the non-root appliance user; pass --user USER." >&2
+  exit 1
+fi
+if [[ ! -f "$PI_AGENT_DIR/requirements.txt" ]]; then
+  echo "Run install.sh from a complete FilamentTracker Live Spool checkout." >&2
   exit 1
 fi
 
-echo "Installing system packages..."
-sudo apt update
-sudo apt install -y git python3-venv python3-pip curl
-
-echo
-echo "Creating Python virtual environment..."
-python3 -m venv "$VENV_DIR"
-
-echo
-echo "Installing Python packages..."
-"$VENV_DIR/bin/python" -m pip install --upgrade pip
-"$VENV_DIR/bin/pip" install -r "$PI_AGENT_DIR/requirements.txt"
-
-echo
-echo "Installing systemd service..."
-sudo tee "$SERVICE_FILE" > /dev/null << SERVICEEOF
-[Unit]
-Description=FilamentTracker Live Spool Pi Agent
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-User=$APP_USER
-Group=$APP_USER
-WorkingDirectory=$PI_AGENT_DIR
-Environment="PATH=$VENV_DIR/bin"
-ExecStart=$VENV_DIR/bin/uvicorn app.main:app --host 0.0.0.0 --port $APP_PORT
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-SERVICEEOF
-
-echo
-echo "Enabling and starting service..."
-sudo systemctl daemon-reload
-sudo systemctl enable "$SERVICE_NAME"
-sudo systemctl restart "$SERVICE_NAME"
-
-echo
-echo "Checking service status..."
-sleep 2
-sudo systemctl status "$SERVICE_NAME" --no-pager -l || true
-
-echo
-echo "Testing local API..."
-if curl -fsS "http://127.0.0.1:${APP_PORT}/status" > /dev/null; then
-  echo "API is responding locally."
-else
-  echo "WARNING: API did not respond locally yet."
+ARCH="$(dpkg --print-architecture 2>/dev/null || uname -m)"
+PI_MODEL="$(tr -d '\0' </proc/device-tree/model 2>/dev/null || true)"
+if [[ "$PI_MODEL" != Raspberry\ Pi* || "$ARCH" != arm64 ]]; then
+  if [[ "$ALLOW_UNSUPPORTED" != true ]]; then
+    echo "Supported appliance platform: 64-bit Raspberry Pi OS on Raspberry Pi 4 or 5." >&2
+    echo "Detected: ${PI_MODEL:-non-Raspberry Pi}, architecture $ARCH" >&2
+    echo "Use --allow-unsupported only for development or testing." >&2
+    exit 1
+  fi
+  echo "WARNING: continuing on unsupported platform: ${PI_MODEL:-unknown} ($ARCH)"
 fi
 
-IP_ADDRESS="$(hostname -I | awk '{print $1}')"
+APP_GROUP="$(id -gn "$APP_USER")"
+echo "Installing operating-system packages..."
+apt-get update
+packages=(git python3 python3-pip python3-venv curl i2c-tools)
+if [[ "$INSTALL_KIOSK" == true ]]; then
+  packages+=(chromium unclutter)
+fi
+DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
 
-echo
-echo "======================================"
-echo " Installation Complete"
-echo "======================================"
-echo "Service: $SERVICE_NAME"
-echo "Port:    $APP_PORT"
-echo "Status:  sudo systemctl status $SERVICE_NAME --no-pager -l"
-echo
-echo "API:"
-echo "http://${IP_ADDRESS}:${APP_PORT}/status"
-echo
+if command -v raspi-config >/dev/null 2>&1; then
+  raspi-config nonint do_i2c 0
+else
+  echo "WARNING: raspi-config not found; verify that I2C is enabled."
+fi
+
+install -d -m 0755 "$CONFIG_DIR"
+install -d -o "$APP_USER" -g "$APP_GROUP" -m 0750 "$DATA_DIR"
+if [[ ! -f "$CONFIG_DIR/config.yaml" ]]; then
+  install -m 0644 "$PI_AGENT_DIR/config/config.yaml" "$CONFIG_DIR/config.yaml"
+  sed -i 's/environment: "development"/environment: "production"/' "$CONFIG_DIR/config.yaml"
+  sed -i 's@data_dir: "data"@data_dir: "/var/lib/filamenttracker-live-spool"@' "$CONFIG_DIR/config.yaml"
+  echo "Created $CONFIG_DIR/config.yaml (safe mock-hardware defaults)."
+else
+  echo "Preserving existing $CONFIG_DIR/config.yaml"
+fi
+if [[ ! -f "$CONFIG_DIR/live-spool.env" ]]; then
+  install -m 0644 "$PI_AGENT_DIR/config/live-spool.env.example" "$CONFIG_DIR/live-spool.env"
+else
+  echo "Preserving existing $CONFIG_DIR/live-spool.env"
+fi
+
+LEGACY_CALIBRATION="$PI_AGENT_DIR/data/calibration.json"
+if [[ -f "$LEGACY_CALIBRATION" && ! -f "$DATA_DIR/calibration.json" ]]; then
+  install -o "$APP_USER" -g "$APP_GROUP" -m 0640 "$LEGACY_CALIBRATION" "$DATA_DIR/calibration.json"
+  echo "Migrated existing calibration to $DATA_DIR/calibration.json"
+elif [[ -f "$DATA_DIR/calibration.json" ]]; then
+  echo "Preserving existing calibration."
+fi
+
+python3 -m venv "$VENV_DIR"
+"$VENV_DIR/bin/python" -m pip install --upgrade pip
+"$VENV_DIR/bin/pip" install -r "$PI_AGENT_DIR/requirements.txt"
+chown -R "$APP_USER:$APP_GROUP" "$VENV_DIR"
+
+supplementary=()
+for group in i2c gpio spi; do
+  if getent group "$group" >/dev/null; then
+    usermod -a -G "$group" "$APP_USER"
+    supplementary+=("$group")
+  fi
+done
+supplementary_line="# No supplementary hardware groups found"
+if ((${#supplementary[@]})); then
+  supplementary_line="SupplementaryGroups=${supplementary[*]}"
+fi
+sed \
+  -e "s|@APP_USER@|$APP_USER|g" \
+  -e "s|@APP_GROUP@|$APP_GROUP|g" \
+  -e "s|@PI_AGENT_DIR@|$PI_AGENT_DIR|g" \
+  -e "s|@VENV_DIR@|$VENV_DIR|g" \
+  -e "s|@SUPPLEMENTARY_GROUPS@|$supplementary_line|g" \
+  "$APP_DIR/deploy/systemd/live-spool-agent.service" >"$SERVICE_FILE"
+chmod 0644 "$SERVICE_FILE"
+
+if [[ "$INSTALL_KIOSK" == true ]]; then
+  USER_HOME="$(getent passwd "$APP_USER" | cut -d: -f6)"
+  AUTOSTART_DIR="$USER_HOME/.config/autostart"
+  install -d -o "$APP_USER" -g "$APP_GROUP" -m 0755 "$AUTOSTART_DIR"
+  sed "s|@KIOSK_SCRIPT@|$PI_AGENT_DIR/scripts/start-dashboard-kiosk.sh|g" \
+    "$APP_DIR/deploy/live-spool-kiosk.desktop" >"$AUTOSTART_DIR/live-spool-kiosk.desktop"
+  chown "$APP_USER:$APP_GROUP" "$AUTOSTART_DIR/live-spool-kiosk.desktop"
+fi
+
+systemctl daemon-reload
+systemctl enable "$SERVICE_NAME"
+systemctl restart "$SERVICE_NAME"
+
+health_url="http://127.0.0.1:8001/status"
+for _ in {1..30}; do
+  if curl -fsS "$health_url" >/dev/null; then
+    address="$(hostname -I 2>/dev/null | awk '{print $1}')"
+    echo "Live Spool is running: http://${address:-localhost}:8001/dashboard"
+    echo "Configuration: $CONFIG_DIR/config.yaml"
+    echo "Runtime data:  $DATA_DIR"
+    echo "Select nau7802 or hx711 in the configuration, then restart the service."
+    exit 0
+  fi
+  sleep 1
+done
+
+systemctl status "$SERVICE_NAME" --no-pager -l || true
+echo "Installation finished, but the API health check failed." >&2
+exit 1
