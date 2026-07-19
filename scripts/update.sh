@@ -40,7 +40,7 @@ systemctl restart "$SERVICE_NAME"
 port="$(sed -n 's/^LIVE_SPOOL_API_PORT=//p' "$CONFIG_DIR/live-spool.env" 2>/dev/null | tail -1)"
 port="${port:-8001}"
 for _ in {1..30}; do
-  if curl -fsS "http://127.0.0.1:${port}/status" >/dev/null; then
+  if curl -fsS "http://127.0.0.1:${port}/health" >/dev/null; then
     echo "Update complete: $(git -C "$APP_DIR" rev-parse --short HEAD)"
     exit 0
   fi

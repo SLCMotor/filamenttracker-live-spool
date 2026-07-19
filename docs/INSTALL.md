@@ -16,6 +16,8 @@ cd filamenttracker-live-spool
 sudo ./install.sh
 ```
 
+Use `--scale-backend nau7802` or `--scale-backend hx711` to configure real hardware during a new install; omit it for an interactive choice or safe mock default.
+
 Use `--no-kiosk` for a headless installation. On an unsupported development
 machine, `--allow-unsupported` bypasses only the platform check.
 

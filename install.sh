@@ -11,14 +11,16 @@ SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 APP_USER="${SUDO_USER:-}"
 ALLOW_UNSUPPORTED=false
 INSTALL_KIOSK=true
+SCALE_BACKEND=""
 
 usage() {
-  echo "Usage: sudo ./install.sh [--user USER] [--no-kiosk] [--allow-unsupported]"
+  echo "Usage: sudo ./install.sh [--user USER] [--scale-backend mock|nau7802|hx711] [--no-kiosk] [--allow-unsupported]"
 }
 
 while (($#)); do
   case "$1" in
     --user) APP_USER="${2:?--user requires a username}"; shift 2 ;;
+    --scale-backend) SCALE_BACKEND="${2:?--scale-backend requires a value}"; shift 2 ;;
     --no-kiosk) INSTALL_KIOSK=false; shift ;;
     --allow-unsupported) ALLOW_UNSUPPORTED=true; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -72,7 +74,18 @@ if [[ ! -f "$CONFIG_DIR/config.yaml" ]]; then
   install -m 0644 "$PI_AGENT_DIR/config/config.yaml" "$CONFIG_DIR/config.yaml"
   sed -i 's/environment: "development"/environment: "production"/' "$CONFIG_DIR/config.yaml"
   sed -i 's@data_dir: "data"@data_dir: "/var/lib/filamenttracker-live-spool"@' "$CONFIG_DIR/config.yaml"
-  echo "Created $CONFIG_DIR/config.yaml (safe mock-hardware defaults)."
+  if [[ -z "$SCALE_BACKEND" && -t 0 ]]; then
+    read -r -p "Scale backend [mock/nau7802/hx711] (mock): " SCALE_BACKEND
+  fi
+  SCALE_BACKEND="${SCALE_BACKEND:-mock}"
+  case "$SCALE_BACKEND" in
+    mock|nau7802|hx711) ;;
+    *) echo "Invalid scale backend: $SCALE_BACKEND" >&2; exit 2 ;;
+  esac
+  if [[ "$SCALE_BACKEND" != mock ]]; then
+    sed -i "s/device_mode: \"mock\"/device_mode: \"real\"/; s/backend: \"mock\"/backend: \"$SCALE_BACKEND\"/; s/mock: true/mock: false/g" "$CONFIG_DIR/config.yaml"
+  fi
+  echo "Created $CONFIG_DIR/config.yaml (scale backend: $SCALE_BACKEND)."
 else
   echo "Preserving existing $CONFIG_DIR/config.yaml"
 fi
@@ -128,7 +141,7 @@ systemctl daemon-reload
 systemctl enable "$SERVICE_NAME"
 systemctl restart "$SERVICE_NAME"
 
-health_url="http://127.0.0.1:8001/status"
+health_url="http://127.0.0.1:8001/health"
 for _ in {1..30}; do
   if curl -fsS "$health_url" >/dev/null; then
     address="$(hostname -I 2>/dev/null | awk '{print $1}')"
