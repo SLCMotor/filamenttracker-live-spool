@@ -1,16 +1,15 @@
 import json
 import os
 import tempfile
-from pathlib import Path
 from typing import Any
 
 from app.models.calibration import CalibrationStatus
+from app.core.config import config
 
 
 class CalibrationService:
     def __init__(self):
-        self.app_root = Path(__file__).resolve().parents[2]
-        self.calibration_file = self.app_root / "data" / "calibration.json"
+        self.calibration_file = config.data_dir / "calibration.json"
 
         self.zero_offset = 0.0
         self.scale_factor = 1.0

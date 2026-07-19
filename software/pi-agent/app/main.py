@@ -61,5 +61,7 @@ app.include_router(nfc_router)
 app.include_router(spool_router)
 app.include_router(calibration_router)
 app.include_router(calibration_ui_router)
-app.include_router(system_router)
-app.include_router(mock_router)
+if config.system_controls_enabled:
+    app.include_router(system_router)
+if config.development_mode or config.mock_hardware:
+    app.include_router(mock_router)

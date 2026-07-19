@@ -1,24 +1,23 @@
+# Safe development defaults. The installer creates an appliance copy under /etc.
 app:
   name: "FilamentTracker Live Spool"
   version: "0.1.0"
   environment: "development"
-
 server:
-  host: "127.0.0.1"
+  host: "0.0.0.0"
   port: 8001
-
+  log_level: "info"
 device:
   name: "Live Spool"
-  location: "Workshop"
-
+  location: ""
+runtime:
+  data_dir: "data"
 hardware:
-  device_mode: "real"
-
+  device_mode: "mock"
 scale:
   enabled: true
-  backend: "nau7802"
-  mock: false
-  unit: "grams"
+  backend: "mock"
+  mock: true
   hx711:
     data_pin: 5
     clock_pin: 6
@@ -31,7 +30,11 @@ scale:
     poll_rate: 10
     samples: 15
     stable_stddev: 1000
-
 nfc:
   enabled: true
-  mock: false
+  mock: true
+  pn532:
+    address: 0x24
+admin:
+  # These controls are intended only for a trusted local appliance.
+  system_controls_enabled: false

@@ -3,7 +3,9 @@ set -e
 
 export DISPLAY="${DISPLAY:-:0}"
 
-DASHBOARD_URL="http://localhost:8001/dashboard"
+DASHBOARD_URL="${LIVE_SPOOL_DASHBOARD_URL:-http://localhost:8001/dashboard}"
+KIOSK_DATA_DIR="${LIVE_SPOOL_KIOSK_DATA_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/filamenttracker-live-spool/chromium}"
+mkdir -p "$KIOSK_DATA_DIR"
 
 # Wait for the Live Spool API/dashboard to be ready before opening Chromium.
 for i in {1..60}; do
@@ -32,4 +34,4 @@ exec /usr/bin/chromium \
   --disable-session-crashed-bubble \
   --disable-features=TranslateUI \
   --password-store=basic \
-  --user-data-dir=/home/livespool/.config/chromium-live-spool-kiosk
+  --user-data-dir="$KIOSK_DATA_DIR"

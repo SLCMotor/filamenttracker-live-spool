@@ -6,6 +6,7 @@ import time
 from typing import Any, Callable, Optional
 
 from app.services.bambu_rfid import read_bambu_rfid
+from app.core.config import config
 
 try:
     import board
@@ -33,7 +34,7 @@ class NFCService:
 
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
-            self.pn532 = PN532_I2C(i2c, debug=False, address=0x24)
+            self.pn532 = PN532_I2C(i2c, debug=False, address=config.pn532_address)
             self.pn532.SAM_configuration()
             self.error = None
         except Exception as exc:

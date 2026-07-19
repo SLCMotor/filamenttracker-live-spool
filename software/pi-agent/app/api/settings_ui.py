@@ -106,7 +106,7 @@ def cursor_hide_status() -> str:
 
 def kiosk_mode_status() -> str:
     chromium_running = command_success(["pgrep", "-f", "chromium"])
-    kiosk_configured = Path("/home/livespool/.xinitrc").exists()
+    kiosk_configured = Path.home().joinpath(".config/autostart/live-spool-kiosk.desktop").exists()
 
     if chromium_running:
         return "Enabled"
@@ -164,7 +164,7 @@ def network_info() -> dict:
         "ip_address": primary_ip_address(),
         "wifi_status": "Connected" if wifi_connected else "Disconnected",
         "ethernet_status": "Connected" if ethernet_connected else "Disconnected",
-        "api_port": "8001",
+        "api_port": str(config.port),
         "api_status": "Ready",
     }
 
