@@ -39,6 +39,10 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=str(STATIC_ROOT)), name="static")
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok", "version": config.version}
+
 @app.get("/")
 def root():
     return {
