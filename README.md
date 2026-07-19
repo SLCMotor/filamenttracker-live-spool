@@ -134,12 +134,22 @@ place an accurately known weight, enter its mass, and verify the result. The
 calibration file is written atomically under `/var/lib` and is not overwritten
 by installation or updates.
 
-## Screenshots
+## Photos
 
-Release screenshots are not available yet. Contributions of publication-safe
-photos or screenshots showing the dashboard, calibration flow, and completed
-hardware are welcome. Do not include Wi-Fi credentials, private addresses, NFC
-UIDs, or personal inventory data in submitted images.
+<table>
+<tr>
+<td><img src="docs/images/live_spool_dashboard.jpg" alt="Live Spool touchscreen dashboard"><br><strong>Touchscreen dashboard</strong></td>
+<td><img src="docs/images/live_spool_technician_menu.jpg" alt="Live Spool technician menu"><br><strong>Technician menu</strong></td>
+</tr>
+<tr>
+<td><img src="docs/images/live_spool_scale_top.jpg" alt="Completed Live Spool scale and touchscreen"><br><strong>Completed appliance</strong></td>
+<td><img src="docs/images/nau7802_wiring.jpg" alt="NAU7802 and PN532 wiring inside the appliance"><br><strong>NAU7802 and PN532 wiring</strong></td>
+</tr>
+</table>
+
+See the [complete hardware gallery](docs/GALLERY.md) for the display, Raspberry Pi,
+load cell, PN532, NAU7802, HX711, breakout board, and wiring photographs.
+Publication copies are resized and contain no camera EXIF or GPS metadata.
 
 ## Updating
 

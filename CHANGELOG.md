@@ -11,6 +11,7 @@ Versioning and the Keep a Changelog format.
 - preservation-first installer, updater, uninstaller, systemd unit, and kiosk setup
 - mock-hardware tests and GitHub Actions quality checks
 - public release, security, contribution, and hardware documentation
+- publication-safe appliance, interface, component, and wiring photographs
 
 ### Changed
 

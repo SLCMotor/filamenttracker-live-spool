@@ -147,3 +147,7 @@ scale:
 ```
 
 The Android app does not need to care which scale backend the Pi uses.
+
+## Photographs
+
+See the [hardware gallery](GALLERY.md) for publication-safe photographs of the completed appliance, display enclosure, Raspberry Pi 5, load cell, PN532, NAU7802, HX711, GPIO breakout, and installed wiring.
