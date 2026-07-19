@@ -25,7 +25,7 @@ of record; Live Spool stores no second spool inventory database.
 
 Tested appliance:
 
-- Raspberry Pi 5 with 64-bit Raspberry Pi OS
+- Raspberry Pi 5 with 64-bit Raspberry Pi OS Trixie
 - ELECROW 7-inch 1024×600 touchscreen
 - PN532 NFC reader in I2C mode at `0x24`
 - NAU7802 load-cell ADC at `0x2A`
@@ -36,7 +36,7 @@ Also supported in software:
 - HX711 load-cell ADC using BCM GPIO pins (defaults: data 5, clock 6)
 - mock hardware on Linux development systems
 
-Raspberry Pi 5 is the reference and tested platform. Raspberry Pi 4 with a
+Raspberry Pi 5 running 64-bit Raspberry Pi OS Trixie is the reference and tested platform. Raspberry Pi 4 with a
 64-bit Raspberry Pi OS is expected to work but has not yet received the same
 hardware validation. See [Hardware](docs/HARDWARE.md) before wiring anything.
 

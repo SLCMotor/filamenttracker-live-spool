@@ -5,6 +5,7 @@ Live Spool is designed as a small appliance built around a Raspberry Pi, NFC rea
 ## Tested Hardware
 
 - Raspberry Pi 5
+- 64-bit Raspberry Pi OS Trixie
 - 7 inch ELECROW touchscreen
 - PN532 NFC reader over I2C
 - SparkFun HX711 load cell amplifier

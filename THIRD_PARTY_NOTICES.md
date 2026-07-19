@@ -9,6 +9,7 @@ from the linked upstream projects and from PyPI.
 | Package | Version | License |
 | --- | ---: | --- |
 | Adafruit-Blinka | 9.1.0 | MIT |
+| Adafruit-Blinka-Raspberry-Pi5-Neopixel | 1.0.0rc2 | GPL-2.0-only |
 | Adafruit-PlatformDetect | 3.89.1 | MIT |
 | Adafruit-PureIO | 1.1.11 | MIT |
 | adafruit-circuitpython-busdevice | 5.2.17 | MIT |
@@ -35,12 +36,16 @@ from the linked upstream projects and from PyPI.
 | pyserial | 3.5 | BSD-3-Clause |
 | pyusb | 1.3.1 | BSD-3-Clause |
 | PyYAML | 6.0.3 | MIT |
+| RPi.GPIO | 0.7.1 | MIT |
+| rpi-ws281x | 5.0.0 | MIT |
 | setuptools | 83.0.0 | MIT |
 | Starlette | 1.3.1 | BSD-3-Clause |
 | sysv-ipc | 1.2.0 | BSD-3-Clause |
 | typing-extensions | 4.15.0 | PSF-2.0 |
 | typing-inspection | 0.4.2 | MIT |
 | Uvicorn | 0.49.0 | BSD-3-Clause |
+
+Raspberry Pi 5 installations pull `Adafruit-Blinka-Raspberry-Pi5-Neopixel` as a platform-specific Blinka dependency. It is licensed under GPL version 2; its corresponding source and license are available at https://github.com/adafruit/Adafruit_Blinka_Raspberry_Pi5_Neopixel. Anyone redistributing a prepared appliance image must preserve that license and satisfy its source-code requirements. The project installer downloads this package from PyPI and does not vendor it in this repository.
 
 The authoritative license text shipped with each installed Python distribution
 takes precedence over this summary. The installer does not copy third-party
