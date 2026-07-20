@@ -5,6 +5,12 @@ Versioning and the Keep a Changelog format.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [0.1.0] - 2026-07-20
+
+Initial public preview of the FilamentTracker Live Spool Raspberry Pi appliance.
+
 ### Added
 
 - external appliance configuration and runtime-data paths
@@ -21,8 +27,8 @@ Versioning and the Keep a Changelog format.
 - mock and system-control routes are conditionally exposed
 - PN532 address, API listener, scale pins/backend, runtime path, and logging are configurable
 
-## [0.1.0] - TBD
+### Supported hardware and integration
 
-Initial public preview of the Live Spool Raspberry Pi appliance, including
-PN532, NAU7802, HX711, Bambu RFID reading, touchscreen UI, calibration, and the
-FilamentTracker Android/API workflow.
+- PN532, NAU7802, HX711, and Bambu RFID reading
+- touchscreen dashboard, calibration, diagnostics, and local REST API
+- FilamentTracker Android and FilamentTracker Server workflows
