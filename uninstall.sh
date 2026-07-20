@@ -5,6 +5,7 @@ SERVICE_NAME="live-spool-agent"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="/etc/filamenttracker-live-spool"
 DATA_DIR="/var/lib/filamenttracker-live-spool"
+SUDOERS_FILE="/etc/sudoers.d/filamenttracker-live-spool"
 REMOVE_CONFIG=false
 REMOVE_DATA=false
 REMOVE_VENV=false
@@ -43,6 +44,7 @@ fi
 
 systemctl disable --now "$SERVICE_NAME" 2>/dev/null || true
 rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+rm -f "$SUDOERS_FILE"
 systemctl daemon-reload
 
 kiosk_user="${SUDO_USER:-}"

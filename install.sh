@@ -8,6 +8,7 @@ VENV_DIR="$PI_AGENT_DIR/.venv"
 CONFIG_DIR="/etc/filamenttracker-live-spool"
 DATA_DIR="/var/lib/filamenttracker-live-spool"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+SUDOERS_FILE="/etc/sudoers.d/filamenttracker-live-spool"
 APP_USER="${SUDO_USER:-}"
 ALLOW_UNSUPPORTED=false
 INSTALL_KIOSK=true
@@ -91,6 +92,7 @@ else
 fi
 if [[ ! -f "$CONFIG_DIR/live-spool.env" ]]; then
   install -m 0644 "$PI_AGENT_DIR/config/live-spool.env.example" "$CONFIG_DIR/live-spool.env"
+  sed -i 's/LIVE_SPOOL_SYSTEM_CONTROLS_ENABLED=false/LIVE_SPOOL_SYSTEM_CONTROLS_ENABLED=true/' "$CONFIG_DIR/live-spool.env"
 else
   echo "Preserving existing $CONFIG_DIR/live-spool.env"
 fi
@@ -127,6 +129,15 @@ sed \
   -e "s|@SUPPLEMENTARY_GROUPS@|$supplementary_line|g" \
   "$APP_DIR/deploy/systemd/live-spool-agent.service" >"$SERVICE_FILE"
 chmod 0644 "$SERVICE_FILE"
+
+sed "s|@APP_USER@|$APP_USER|g" \
+  "$APP_DIR/deploy/sudoers/live-spool-agent" >"$SUDOERS_FILE"
+chmod 0440 "$SUDOERS_FILE"
+if ! visudo -cf "$SUDOERS_FILE" >/dev/null; then
+  rm -f "$SUDOERS_FILE"
+  echo "Generated system-control authorization is invalid." >&2
+  exit 1
+fi
 
 if [[ "$INSTALL_KIOSK" == true ]]; then
   USER_HOME="$(getent passwd "$APP_USER" | cut -d: -f6)"

@@ -33,10 +33,14 @@
     <div>
       <div class="section-kicker">System Controls</div>
 
+      {% if not system_controls_enabled %}
+      <p class="settings-help">System controls are disabled in the appliance configuration.</p>
+      {% endif %}
       <div class="settings-command-list">
         <button class="settings-command warning" type="button"
                 data-system-command="/system/restart-app"
                 data-after-command="reload"
+                {% if not system_controls_enabled %}disabled{% endif %}
                 data-title="Restart Application?"
                 data-message="This will restart the Live Spool app. The screen will refresh after a few seconds.">
           <span>Restart App</span>
@@ -46,6 +50,7 @@
         <button class="settings-command warning" type="button"
                 data-system-command="/system/reboot"
                 data-after-command="reboot"
+                {% if not system_controls_enabled %}disabled{% endif %}
                 data-title="Reboot Raspberry Pi?"
                 data-message="This will restart the entire Raspberry Pi. The display will go offline briefly.">
           <span>Reboot Pi</span>
@@ -55,6 +60,7 @@
         <button class="settings-command danger" type="button"
                 data-system-command="/system/shutdown"
                 data-after-command="shutdown"
+                {% if not system_controls_enabled %}disabled{% endif %}
                 data-title="Shutdown Raspberry Pi?"
                 data-message="This will power off the Raspberry Pi. You will need to unplug and reconnect power to turn it back on.">
           <span>Shutdown Pi</span>
@@ -171,10 +177,27 @@
     confirmButton.textContent = "Working...";
     cancelButton.classList.add("hidden");
 
+    let response;
     try {
-      await fetch(pendingCommand, { method: "POST" });
+      response = await fetch(pendingCommand, { method: "POST" });
+      if (!response.ok) {
+        let detail = `Request failed (${response.status})`;
+        try {
+          const body = await response.json();
+          if (body.detail) detail = body.detail;
+        } catch (parseError) {
+          // Keep the HTTP status when the response is not JSON.
+        }
+        throw new Error(detail);
+      }
     } catch (error) {
-      // Restart/reboot/shutdown may interrupt the request. That is expected.
+      title.textContent = "Command Failed";
+      message.textContent = error.message || "The system command could not be sent.";
+      cancelButton.textContent = "Close";
+      cancelButton.classList.remove("hidden");
+      pendingCommand = null;
+      pendingAfterCommand = null;
+      return;
     }
 
     if (pendingAfterCommand === "reload") {

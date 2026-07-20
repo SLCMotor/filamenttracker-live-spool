@@ -30,7 +30,7 @@ Restart the service after changes.
 | `LIVE_SPOOL_PN532_ADDRESS` | decimal or `0x` address | `0x24` |
 | `LIVE_SPOOL_DEVELOPMENT_MODE` | expose development behavior | `false` appliance |
 | `LIVE_SPOOL_MOCK_HARDWARE` | force all mock devices | `false` appliance |
-| `LIVE_SPOOL_SYSTEM_CONTROLS_ENABLED` | expose local power routes | `false` |
+| `LIVE_SPOOL_SYSTEM_CONTROLS_ENABLED` | expose local appliance controls | `true` on installed appliances |
 
 Boolean values accept `true/false`, `yes/no`, `on/off`, and `1/0`.
 
@@ -44,6 +44,8 @@ Set `hardware.device_mode` to `real`, `scale.backend` to `nau7802`, both
 Use the same real NFC settings, set `scale.backend` to `hx711`, and configure the
 BCM GPIO pins under `scale.hx711`.
 
-System controls are deliberately disabled by default. Enabling them does not make
-the API suitable for Internet exposure and may also require narrowly scoped local
-privilege configuration.
+System controls are disabled in development defaults and enabled for new
+appliance installations. The installer grants the appliance user only the
+commands required to restart Live Spool, reboot, and power off. These local
+controls do not add authentication and must never be exposed directly to the
+Internet.

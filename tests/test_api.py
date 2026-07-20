@@ -15,3 +15,7 @@ def test_mock_mode_exposes_mock_routes_but_not_system_controls():
     with TestClient(app) as client:
         assert client.post("/mock/weight", json={"weightGrams": 42}).status_code == 200
         assert client.post("/system/reboot").status_code == 404
+        settings = client.get("/settings/general")
+        assert settings.status_code == 200
+        assert "System controls are disabled" in settings.text
+        assert settings.text.count("disabled") >= 3

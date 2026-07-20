@@ -16,7 +16,6 @@ Restart=on-failure
 RestartSec=5s
 TimeoutStartSec=30s
 TimeoutStopSec=20s
-NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=read-only
 ProtectSystem=strict

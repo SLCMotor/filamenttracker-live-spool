@@ -46,3 +46,14 @@ def test_environment_overrides(tmp_path, monkeypatch):
     assert settings.port == 8123
     assert settings.mock_hardware
     assert settings.scale_backend == "mock"
+
+
+def test_system_controls_environment_override(tmp_path, monkeypatch):
+    config_path = tmp_path / "config.yaml"
+    write_config(config_path)
+    monkeypatch.setenv("LIVE_SPOOL_SYSTEM_CONTROLS_ENABLED", "true")
+    settings = Config(config_path)
+    assert settings.system_controls_enabled
+
+    monkeypatch.setenv("LIVE_SPOOL_SYSTEM_CONTROLS_ENABLED", "false")
+    assert not settings.system_controls_enabled

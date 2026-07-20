@@ -299,6 +299,9 @@ def settings_section_page(request: Request, section_key: str):
     if section_key == "scale":
         extra["scale_backend"] = config.scale_backend.upper()
 
+    if section_key == "general":
+        extra["system_controls_enabled"] = config.system_controls_enabled
+
     return templates.TemplateResponse(
         request,
         settings_template_for(section_key),

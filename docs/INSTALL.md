@@ -21,6 +21,9 @@ Use `--scale-backend nau7802` or `--scale-backend hx711` to configure real hardw
 Use `--no-kiosk` for a headless installation. On an unsupported development
 machine, `--allow-unsupported` bypasses only the platform check.
 
+The installer enables the local restart, reboot, and shutdown controls and adds
+a narrowly scoped sudoers rule for those three appliance operations.
+
 The installer is safe to rerun. It preserves existing external configuration and
 calibration. A legacy calibration inside `software/pi-agent/data` is migrated
 only when the external destination does not already exist.

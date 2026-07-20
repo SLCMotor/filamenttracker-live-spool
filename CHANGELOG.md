@@ -5,7 +5,11 @@ Versioning and the Keep a Changelog format.
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Fixed
+
+- Raspberry Pi reboot and shutdown controls now use installed, narrowly scoped
+  authorization and report disabled or failed requests instead of displaying a
+  false success state.
 
 ## [0.1.0] - 2026-07-20
 
