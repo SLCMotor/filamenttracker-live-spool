@@ -15,13 +15,22 @@ if [[ $EUID -ne 0 ]]; then
   echo "Run with sudo: sudo ./scripts/update.sh" >&2
   exit 1
 fi
-if [[ -n "$(git -C "$APP_DIR" status --porcelain)" ]]; then
+
+REPO_USER="$(stat -c '%U' "$APP_DIR/.git")"
+if [[ -z "$REPO_USER" || "$REPO_USER" == root ]] || ! id "$REPO_USER" >/dev/null 2>&1; then
+  echo "Could not determine the non-root Git checkout owner." >&2
+  exit 1
+fi
+git_as_owner() {
+  runuser -u "$REPO_USER" -- git -C "$APP_DIR" "$@"
+}
+if [[ -n "$(git_as_owner status --porcelain)" ]]; then
   echo "Refusing to update a checkout with local changes." >&2
-  git -C "$APP_DIR" status --short >&2
+  git_as_owner status --short >&2
   exit 1
 fi
 
-old_commit="$(git -C "$APP_DIR" rev-parse HEAD)"
+old_commit="$(git_as_owner rev-parse HEAD)"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 backup_dir="$BACKUP_ROOT/$stamp"
 install -d -m 0700 "$backup_dir"
@@ -36,7 +45,7 @@ done
 printf '%s\n' "$old_commit" >"$backup_dir/previous-commit.txt"
 
 echo "Updating from $old_commit (backup: $backup_dir)"
-git -C "$APP_DIR" pull --ff-only
+git_as_owner pull --ff-only
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
   python3 -m venv "$VENV_DIR"
 fi
@@ -80,7 +89,7 @@ port="$(sed -n 's/^LIVE_SPOOL_API_PORT=//p' "$CONFIG_DIR/live-spool.env" 2>/dev/
 port="${port:-8001}"
 for _ in {1..30}; do
   if curl -fsS "http://127.0.0.1:${port}/health" >/dev/null; then
-    echo "Update complete: $(git -C "$APP_DIR" rev-parse --short HEAD)"
+    echo "Update complete: $(git_as_owner rev-parse --short HEAD)"
     exit 0
   fi
   sleep 1

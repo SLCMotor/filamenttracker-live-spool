@@ -10,6 +10,8 @@ Versioning and the Keep a Changelog format.
 - Raspberry Pi reboot and shutdown controls now use installed, narrowly scoped
   authorization and report disabled or failed requests instead of displaying a
   false success state.
+- The root-run updater now performs Git operations as the checkout owner so SSH
+  credentials and host verification work correctly.
 
 ## [0.1.0] - 2026-07-20
 
