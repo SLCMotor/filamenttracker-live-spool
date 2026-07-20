@@ -46,11 +46,11 @@ The complete build package is under [`hardware/`](hardware/README.md):
 
 | Guide | Purpose |
 | --- | --- |
-| [Bill of Materials](hardware/docs/01_Bill_of_Materials.pdf) | Components, quantities, and build notes |
+| [Bill of Materials](hardware/docs/01_Bill_of_Materials.md) | Components, quantities, and build notes |
 | [Wiring Diagram](hardware/docs/02_Wiring_Diagram.png) | Raspberry Pi, NFC, scale ADC, and load-cell connections |
 | [Assembly Guide](hardware/docs/03_Assembly_Guide.png) | Mechanical assembly overview |
 | [Print Plates](hardware/docs/04_Print_Plates.png) | Printable parts and plate organization |
-| [Calibration Guide](hardware/docs/05_Calibration_Guide.pdf) | Tare, calibration, verification, and troubleshooting |
+| [Calibration Guide](hardware/docs/05_Calibration_Guide.md) | Tare, calibration, verification, and troubleshooting |
 
 The recommended printable is the multi-plate [`FilamentTracker_Live_Spool.3mf`](hardware/printable/FilamentTracker_Live_Spool.3mf).
 An [STL package](hardware/printable/FilamentTracker_Live_Spool_STL.zip) is also

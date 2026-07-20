@@ -6,11 +6,11 @@ the wiring and assembly guides, and calibrate the completed scale before use.
 
 ## Hardware documentation
 
-1. [Bill of Materials](docs/01_Bill_of_Materials.pdf)
+1. [Bill of Materials](docs/01_Bill_of_Materials.md)
 2. [Wiring Diagram](docs/02_Wiring_Diagram.png)
 3. [Assembly Guide](docs/03_Assembly_Guide.png)
 4. [Print Plates](docs/04_Print_Plates.png)
-5. [Calibration Guide](docs/05_Calibration_Guide.pdf)
+5. [Calibration Guide](docs/05_Calibration_Guide.md)
 
 The wiring, assembly, and print-plate guides are high-resolution images so they
 can be viewed directly on GitHub or saved for reference at the workbench.
