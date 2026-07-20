@@ -12,6 +12,8 @@ Versioning and the Keep a Changelog format.
   false success state.
 - The root-run updater now performs Git operations as the checkout owner so SSH
   credentials and host verification work correctly.
+- Added README and hardware-guide instructions for opening the hidden Technician
+  Menu from the touchscreen header.
 
 ## [0.1.0] - 2026-07-20
 

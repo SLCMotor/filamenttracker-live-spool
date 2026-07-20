@@ -90,6 +90,13 @@ If weight increases in the wrong direction, swap `A+` and `A-`.
 
 ## Calibration
 
+### Open the technician menu
+
+Press and hold the **Filament Tracker / Live Spool** title in the upper-left
+corner of the touchscreen for about one second. When the hold indicator
+completes, select **Calibration**. The same menu also provides Dashboard,
+Diagnostics, and Settings shortcuts.
+
 Calibration can be started from:
 
 - the dashboard Calibrate shortcut

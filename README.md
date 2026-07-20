@@ -146,6 +146,24 @@ by default. The API intentionally has no cloud discovery or remote-access layer.
 See the complete [REST API](docs/API.md) and
 [Android integration](docs/ANDROID_INTEGRATION.md).
 
+## Technician menu
+
+On the touchscreen, press and hold the **Filament Tracker / Live Spool** title
+in the upper-left corner for about one second. A progress indicator fills during
+the 900 ms hold, then the Technician Menu opens.
+
+The menu provides quick access to:
+
+- Dashboard
+- Diagnostics
+- Calibration
+- Settings, including restart, reboot, and shutdown controls
+
+Tap the **×** button or the area outside the menu to close it. The same gesture
+works with a mouse by holding the primary button over the title. If the gesture
+is unavailable, open `/diagnostics`, `/calibration-wizard`, or `/settings`
+directly in the appliance browser.
+
 ## Calibration
 
 Open `http://<live-spool-host>:8001/calibration-wizard`, remove all weight, tare,
