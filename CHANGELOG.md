@@ -12,6 +12,8 @@ Versioning and the Keep a Changelog format.
 - mock-hardware tests and GitHub Actions quality checks
 - public release, security, contribution, and hardware documentation
 - publication-safe appliance, interface, component, and wiring photographs
+- printable enclosure files, build guides, BOM, and calibration documentation
+- CC BY 4.0 attribution and modification record for the derivative enclosure
 
 ### Changed
 

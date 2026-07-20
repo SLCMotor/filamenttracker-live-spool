@@ -40,6 +40,25 @@ Raspberry Pi 5 running 64-bit Raspberry Pi OS Trixie is the reference and tested
 64-bit Raspberry Pi OS is expected to work but has not yet received the same
 hardware validation. See [Hardware](docs/HARDWARE.md) before wiring anything.
 
+## Hardware documentation
+
+The complete build package is under [`hardware/`](hardware/README.md):
+
+| Guide | Purpose |
+| --- | --- |
+| [Bill of Materials](hardware/docs/01_Bill_of_Materials.pdf) | Components, quantities, and build notes |
+| [Wiring Diagram](hardware/docs/02_Wiring_Diagram.png) | Raspberry Pi, NFC, scale ADC, and load-cell connections |
+| [Assembly Guide](hardware/docs/03_Assembly_Guide.png) | Mechanical assembly overview |
+| [Print Plates](hardware/docs/04_Print_Plates.png) | Printable parts and plate organization |
+| [Calibration Guide](hardware/docs/05_Calibration_Guide.pdf) | Tare, calibration, verification, and troubleshooting |
+
+The recommended printable is the multi-plate [`FilamentTracker_Live_Spool.3mf`](hardware/printable/FilamentTracker_Live_Spool.3mf).
+An [STL package](hardware/printable/FilamentTracker_Live_Spool_STL.zip) is also
+provided for OrcaSlicer, PrusaSlicer, Cura, and other slicers.
+
+The enclosure is modified from MartinNYHC's SpoolBuddy design under CC BY 4.0.
+See the [hardware attribution and modification record](hardware/ATTRIBUTION.md).
+
 ## Wiring summary
 
 PN532 and NAU7802 intentionally share I2C bus 1:
@@ -191,7 +210,7 @@ Expected I2C addresses are `24` for PN532 and `2a` for NAU7802. See
 - improve guided hardware selection during installation
 - add authentication for optional administrative operations
 - expand Android and FilamentTracker Server integration tests
-- publish enclosure/build plans and real appliance photographs
+- validate additional enclosure variants and publish editable CAD source when available
 - add upgrade rollback assistance and packaged releases
 
 ## Contributing and security
@@ -202,6 +221,9 @@ rather than opening a public issue.
 
 ## License
 
-MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Software and original project documentation: MIT. See [LICENSE](LICENSE) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The derivative printable
+enclosure is separately licensed under CC BY 4.0; see
+[hardware/ATTRIBUTION.md](hardware/ATTRIBUTION.md).
 FilamentTracker and Bambu Lab names belong to their respective owners; this
 project is an independent interoperability tool.

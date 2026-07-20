@@ -66,3 +66,14 @@ source into this repository.
 Bambu Lab is a trademark of its respective owner. Bambu RFID compatibility is
 an independent interoperability feature and is not endorsed by or affiliated
 with Bambu Lab.
+
+## Printable enclosure design
+
+The printable enclosure under `hardware/printable/` is a modified derivative
+of the SpoolBuddy enclosure by MartinNYHC. The source model is published on
+[MakerWorld](https://makerworld.com/en/models/2296982-spoolbuddy) under the
+[Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+The attribution, modification summary, and exact license scope are documented
+in [`hardware/ATTRIBUTION.md`](hardware/ATTRIBUTION.md). This Creative Commons
+license applies to the derivative printable geometry, not to the independently
+developed FilamentTracker Live Spool software.

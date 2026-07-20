@@ -2,6 +2,9 @@
 
 Live Spool is designed as a small appliance built around a Raspberry Pi, NFC reader, scale amplifier, load cell, and touchscreen.
 
+For the printable enclosure and illustrated build package, see the
+[hardware documentation index](../hardware/README.md).
+
 ## Tested Hardware
 
 - Raspberry Pi 5
@@ -151,3 +154,11 @@ The Android app does not need to care which scale backend the Pi uses.
 ## Photographs
 
 See the [hardware gallery](GALLERY.md) for publication-safe photographs of the completed appliance, display enclosure, Raspberry Pi 5, load cell, PN532, NAU7802, HX711, GPIO breakout, and installed wiring.
+
+## Printable enclosure
+
+Use the [3MF print project](../hardware/printable/FilamentTracker_Live_Spool.3mf)
+for the recommended plate layout or the
+[STL package](../hardware/printable/FilamentTracker_Live_Spool_STL.zip) with
+another slicer. Build guides and licensing details are maintained under
+[`hardware/`](../hardware/README.md).
