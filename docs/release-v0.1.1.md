@@ -27,3 +27,5 @@ this release, then run the same command from the extracted directory.
 Existing installations can update with:
 
 ```bash
+sudo ./scripts/update.sh
+```
