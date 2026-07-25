@@ -5,6 +5,10 @@ Versioning and the Keep a Changelog format.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [0.1.1] - 2026-07-25
+
 ### Fixed
 
 - Raspberry Pi reboot and shutdown controls now use installed, narrowly scoped
@@ -14,6 +18,13 @@ Versioning and the Keep a Changelog format.
   credentials and host verification work correctly.
 - Added README and hardware-guide instructions for opening the hidden Technician
   Menu from the touchscreen header.
+
+### Changed
+
+- The application version now comes from the installed software instead of the
+  preserved appliance configuration.
+- Added reproducible ZIP and TAR release bundles, standalone installer assets,
+  checksums, and an idempotent GitHub release workflow.
 
 ## [0.1.0] - 2026-07-20
 

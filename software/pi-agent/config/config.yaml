@@ -1,7 +1,6 @@
 # Safe development defaults. The installer creates an appliance copy under /etc.
 app:
   name: "FilamentTracker Live Spool"
-  version: "0.1.0"
   environment: "development"
 server:
   host: "0.0.0.0"

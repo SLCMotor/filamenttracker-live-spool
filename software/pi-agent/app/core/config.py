@@ -6,6 +6,7 @@ import yaml
 
 APP_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = APP_ROOT / "config" / "config.yaml"
+APP_VERSION = "0.1.1"
 SYSTEM_CONFIG_PATH = Path("/etc/filamenttracker-live-spool/config.yaml")
 
 
@@ -58,7 +59,7 @@ class Config:
 
     @property
     def version(self):
-        return str(self._get("app", "version", default="0.1.0"))
+        return APP_VERSION
 
     @property
     def environment(self):

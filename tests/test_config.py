@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.core.config import Config
+from app.core.config import APP_VERSION, Config
 
 
 def write_config(path: Path) -> None:
@@ -8,6 +8,7 @@ def write_config(path: Path) -> None:
         """
 app:
   environment: production
+  version: 0.0.0
 server:
   host: 127.0.0.1
   port: 7000
@@ -32,6 +33,7 @@ def test_yaml_configuration(tmp_path, monkeypatch):
     monkeypatch.delenv("LIVE_SPOOL_API_PORT", raising=False)
     settings = Config(config_path)
     assert settings.port == 7000
+    assert settings.version == APP_VERSION == "0.1.1"
     assert settings.scale_backend == "hx711"
     assert settings.pn532_address == 0x24
     assert not settings.mock_hardware

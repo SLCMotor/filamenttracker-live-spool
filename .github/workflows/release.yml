@@ -1,0 +1,62 @@
+name: Publish release
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v-prefixed tag to publish
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: ruff check software/pi-agent/app tests
+      - run: pytest
+      - name: Validate release version
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+          PYTHONPATH: software/pi-agent
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(python -c 'from app.core.config import APP_VERSION; print(APP_VERSION)')" = "${TAG#v}"
+          test -f "docs/release-${TAG}.md"
+      - name: Build release assets
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          prefix="filamenttracker-live-spool-${version}"
+          mkdir -p dist
+          git archive --format=tar --prefix="${prefix}/" "$TAG" | gzip -n >"dist/${prefix}.tar.gz"
+          git archive --format=zip --prefix="${prefix}/" -o "dist/${prefix}.zip" "$TAG"
+          cp install.sh uninstall.sh docs/INSTALL.md dist/
+          (cd dist && sha256sum "${prefix}.tar.gz" "${prefix}.zip" install.sh uninstall.sh INSTALL.md >SHA256SUMS)
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          title="FilamentTracker Live Spool ${TAG#v}"
+          notes="docs/release-${TAG}.md"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$title" --notes-file "$notes"
+          else
+            gh release create "$TAG" --verify-tag --title "$title" --notes-file "$notes"
+          fi
+          gh release upload "$TAG" dist/* --clobber
+

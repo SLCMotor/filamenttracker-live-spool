@@ -18,6 +18,15 @@ sudo ./install.sh
 
 Use `--scale-backend nau7802` or `--scale-backend hx711` to configure real hardware during a new install; omit it for an interactive choice or safe mock default.
 
+Versioned release bundles are available from
+[GitHub Releases](https://github.com/SLCMotor/filamenttracker-live-spool/releases).
+After downloading and extracting the ZIP or TAR bundle, run `sudo ./install.sh`
+from its top-level directory. Verify downloaded assets with:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
 Use `--no-kiosk` for a headless installation. On an unsupported development
 machine, `--allow-unsupported` bypasses only the platform check.
 

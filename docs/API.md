@@ -22,7 +22,7 @@ Example:
 {
   "status": "online",
   "deviceName": "Live Spool",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scale": {
     "connected": true,
     "stable": true,

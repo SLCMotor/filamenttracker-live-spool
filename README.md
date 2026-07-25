@@ -92,6 +92,10 @@ cd filamenttracker-live-spool
 sudo ./install.sh
 ```
 
+Versioned ZIP and TAR packages, installer files, checksums, and release notes are
+available from [GitHub Releases](https://github.com/SLCMotor/filamenttracker-live-spool/releases).
+The complete release bundle is recommended for offline or archived installation.
+
 The installer checks the platform, installs system packages, enables I2C, creates
 a virtual environment, installs the service and optional kiosk autostart, and
 verifies the local API. Existing configuration and calibration are preserved.
