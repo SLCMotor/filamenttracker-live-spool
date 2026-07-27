@@ -18,6 +18,9 @@ except Exception:
     PN532_I2C = None
 
 FILAMENT_TRACKER_MIME_TYPE = b"application/vnd.com.slcmotor.filamenttracker.filament"
+NFC_PAGE_WRITE_ATTEMPTS = 3
+NFC_VERIFY_ATTEMPTS = 3
+NFC_RETRY_DELAY_SECONDS = 0.05
 
 
 class NFCService:
@@ -115,7 +118,8 @@ class NFCService:
 
             for page in range(5, 40):
                 try:
-                    self.pn532.ntag2xx_write_block(page, bytes([0x00, 0x00, 0x00, 0x00]))
+                    if not self._write_ntag_page(page, bytes([0x00, 0x00, 0x00, 0x00])):
+                        break
                 except Exception:
                     break
 
@@ -218,28 +222,55 @@ class NFCService:
             for page_offset in range(page_count):
                 page = 4 + page_offset
                 chunk = ndef_bytes[page_offset * 4 : page_offset * 4 + 4]
-                self.pn532.ntag2xx_write_block(page, chunk.ljust(4, b"\x00"))
+                if not self._write_ntag_page(page, chunk.ljust(4, b"\x00")):
+                    return {
+                        "success": False,
+                        "connected": True,
+                        "tagPresent": True,
+                        "tagId": tag_id,
+                        "message": f"Tag rejected the write at NFC page {page}. Keep the tag centered and try again.",
+                        "errorCode": "page_write_failed",
+                        "failedPage": page,
+                    }
 
             for page in range(4 + page_count, min(4 + page_count + 8, 130)):
                 try:
-                    self.pn532.ntag2xx_write_block(page, bytes([0x00, 0x00, 0x00, 0x00]))
+                    if not self._write_ntag_page(page, bytes([0x00, 0x00, 0x00, 0x00])):
+                        break
                 except Exception:
                     break
 
             if progress_callback:
                 progress_callback("verifying", "Verifying...", tag_id)
 
-            verified_text = self._read_ntag_text()
-            verified_payload = self._parse_json_payload(verified_text)
-            if verified_payload != payload:
+            for verify_attempt in range(NFC_VERIFY_ATTEMPTS):
+                if verify_attempt:
+                    time.sleep(NFC_RETRY_DELAY_SECONDS)
+                    selected_uid = self.pn532.read_passive_target(timeout=0.5)
+                    if selected_uid is None:
+                        continue
+                    if bytes(selected_uid) != bytes(uid):
+                        return {
+                            "success": False,
+                            "connected": True,
+                            "tagPresent": True,
+                            "tagId": selected_uid.hex().upper(),
+                            "message": "A different NFC tag was detected during verification.",
+                            "errorCode": "tag_changed",
+                        }
+
+                verified_text = self._read_ntag_text()
+                verified_payload = self._parse_json_payload(verified_text)
+                if verified_payload == payload:
+                    break
+            else:
                 return {
                     "success": False,
                     "connected": True,
                     "tagPresent": True,
                     "tagId": tag_id,
-                    "message": "Tag verification failed.",
+                    "message": "The tag was written but could not be read back correctly. Keep it centered and try again.",
                     "errorCode": "verify_failed",
-                    "verified": verified_payload,
                 }
 
             return {
@@ -262,6 +293,18 @@ class NFCService:
                 "message": self.error,
                 "errorCode": "write_failed",
             }
+
+    def _write_ntag_page(self, page: int, data: bytes) -> bool:
+        for attempt in range(NFC_PAGE_WRITE_ATTEMPTS):
+            try:
+                if self.pn532.ntag2xx_write_block(page, data):
+                    return True
+            except Exception:
+                if attempt == NFC_PAGE_WRITE_ATTEMPTS - 1:
+                    raise
+            if attempt < NFC_PAGE_WRITE_ATTEMPTS - 1:
+                time.sleep(NFC_RETRY_DELAY_SECONDS)
+        return False
 
     def _empty_status(self, connected: bool, error: Optional[str] = None) -> dict:
         return {
