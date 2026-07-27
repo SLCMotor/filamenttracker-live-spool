@@ -18,9 +18,10 @@ except Exception:
     PN532_I2C = None
 
 FILAMENT_TRACKER_MIME_TYPE = b"application/vnd.com.slcmotor.filamenttracker.filament"
-NFC_PAGE_WRITE_ATTEMPTS = 3
+NFC_PAGE_WRITE_ATTEMPTS = 5
 NFC_VERIFY_ATTEMPTS = 3
 NFC_RETRY_DELAY_SECONDS = 0.05
+NFC_PAGE_SETTLE_SECONDS = 0.02
 
 
 class NFCService:
@@ -298,6 +299,7 @@ class NFCService:
         for attempt in range(NFC_PAGE_WRITE_ATTEMPTS):
             try:
                 if self.pn532.ntag2xx_write_block(page, data):
+                    time.sleep(NFC_PAGE_SETTLE_SECONDS)
                     return True
             except Exception:
                 if attempt == NFC_PAGE_WRITE_ATTEMPTS - 1:
@@ -431,8 +433,8 @@ class NFCService:
         try:
             raw = bytearray()
 
-            for page in range(4, 130):
-                block = self.pn532.ntag2xx_read_block(page)
+            for page in range(4, 130, 4):
+                block = self._read_ntag_pages(page)
                 if not block:
                     break
 
@@ -445,6 +447,19 @@ class NFCService:
 
         except Exception:
             return None
+
+    def _read_ntag_pages(self, page: int) -> Optional[bytes]:
+        for attempt in range(NFC_PAGE_WRITE_ATTEMPTS):
+            try:
+                block = self.pn532.mifare_classic_read_block(page)
+                if block:
+                    return bytes(block[:16])
+            except Exception:
+                if attempt == NFC_PAGE_WRITE_ATTEMPTS - 1:
+                    raise
+            if attempt < NFC_PAGE_WRITE_ATTEMPTS - 1:
+                time.sleep(NFC_RETRY_DELAY_SECONDS)
+        return None
 
     def _parse_ndef(self, raw: bytes) -> Optional[str]:
         try:

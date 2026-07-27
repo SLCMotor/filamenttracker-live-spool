@@ -1,6 +1,14 @@
 import json
 
+import pytest
+
+from app.services import nfc_service as nfc_module
 from app.services.nfc_service import NFCService
+
+
+@pytest.fixture(autouse=True)
+def no_hardware_delay(monkeypatch):
+    monkeypatch.setattr(nfc_module.time, "sleep", lambda _seconds: None)
 
 
 class FakePn532:
@@ -22,8 +30,10 @@ class FakePn532:
         self.pages[page] = bytes(data)
         return True
 
-    def ntag2xx_read_block(self, page):
-        return self.pages.get(page, b"\x00\x00\x00\x00")
+    def mifare_classic_read_block(self, page):
+        return b"".join(
+            self.pages.get(current, b"\x00\x00\x00\x00") for current in range(page, page + 4)
+        )
 
 
 def service_with(fake):
@@ -69,7 +79,7 @@ def test_retries_a_transient_page_write_failure():
 
 
 def test_reports_the_exact_page_when_a_tag_rejects_the_write():
-    fake = FakePn532(failed_writes={20: 3})
+    fake = FakePn532(failed_writes={20: 5})
     result = service_with(fake)._write_payload_locked(full_server_payload(), 5, None, None)
 
     assert result["success"] is False
